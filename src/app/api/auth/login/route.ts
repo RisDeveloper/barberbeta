@@ -26,7 +26,7 @@ const PATHS: Record<string, string> = {
   EMPLOYEE: "/employee",
 };
 
-export const POST = async (req: Request) => {
+export async function POST(req: Request) {
   try {
     const json = await req.json();
     const parseResult = Body.safeParse(json);
@@ -50,6 +50,7 @@ export const POST = async (req: Request) => {
       );
     }
 
+    // 1. Tes Query Database
     const user = await prisma.user.findUnique({ where: { email } });
     const ok = await bcrypt.compare(pin, user?.pinHash ?? DUMMY);
 
@@ -63,24 +64,22 @@ export const POST = async (req: Request) => {
 
     fails.delete(key);
 
-    try {
-      await createSession(user.id);
-    } catch (sessionErr: any) {
-      console.error("SESSION_CREATE_ERROR:", sessionErr);
-      // Tetap lanjutkan redirect jika session berhasil diset lewat cookie internal
-    }
+    // 2. Buat Session
+    await createSession(user.id);
 
     const targetUrl = URLS[user.role] ?? PATHS[user.role] ?? "/owner";
     return Response.json({ redirectTo: targetUrl });
 
-  } catch (error: any) {
-    console.error("LOGIN_API_CRASH:", error);
+  } catch (err: any) {
+    // Tangkap error mentah dan kembalikan detailnya secara transparan
     return Response.json(
       {
-        error: "Gagal memproses login",
-        detail: error?.message || String(error),
+        debugErrorName: err?.name || "UnknownError",
+        debugErrorMessage: err?.message || String(err),
+        debugErrorCode: err?.code || null,
+        debugStack: err?.stack || null,
       },
       { status: 500 }
     );
   }
-};
+}
