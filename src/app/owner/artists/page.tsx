@@ -1,0 +1,9 @@
+import { prisma } from "@/lib/db"; import { ownerCtx, TZ } from "@/lib/owner"; import { resolveRange, type SP } from "@/lib/range"; import RangeFilter from "@/components/RangeFilter"; import BranchSel from "@/components/BranchSel"; import Tbl from "@/components/Tbl"; import { startOfLocalDay, startOfLocalWeek, rp } from "@/lib/time";
+export default async function Artists({ searchParams: sp }: { searchParams: SP }) {
+  await ownerCtx(); const R = resolveRange(sp, TZ), d0 = startOfLocalDay(TZ), w0 = startOfLocalWeek(TZ), end = new Date(+d0 + 86400000), br = sp.branch ? { branchId: sp.branch } : {};
+  const cust = async (gte: Date, lt: Date) => new Map((await prisma.transaction.groupBy({ by: ["artistId"], where: { ...br, status: "COMPLETED", createdAt: { gte, lt } }, _count: true })).map((r) => [r.artistId, r._count]));
+  const earn = async (gte: Date, lt: Date) => new Map((await prisma.commission.groupBy({ by: ["userId"], where: { status: { not: "REVERSED" }, user: { role: "EMPLOYEE" }, transaction: { ...br, status: "COMPLETED", createdAt: { gte, lt } } }, _sum: { amountRp: true } })).map((r) => [r.userId, r._sum.amountRp ?? 0]));
+  const [us, cT, cW, cP, eT, eW, eP] = await Promise.all([prisma.user.findMany({ where: { role: "EMPLOYEE", deletedAt: null, ...br }, include: { branch: { select: { name: true } } }, orderBy: { name: "asc" } }), cust(d0, end), cust(w0, end), cust(R.gte, R.lt), earn(d0, end), earn(w0, end), earn(R.gte, R.lt)]);
+  return (<><h1>Barber</h1><RangeFilter sp={sp}><BranchSel sp={sp} /></RangeFilter><Tbl head={["Barber", "Cabang", "Pelanggan hari ini", "Pendapatan hari ini", "Pelanggan minggu ini", "Pendapatan minggu ini", "Pelanggan (periode)", "Komisi (periode)"]}
+    rows={us.map((u) => [u.name, u.branch?.name, cT.get(u.id) ?? 0, rp(eT.get(u.id) ?? 0), cW.get(u.id) ?? 0, rp(eW.get(u.id) ?? 0), cP.get(u.id) ?? 0, rp(eP.get(u.id) ?? 0)])} /></>);
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Owner Portal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700">
+<style>
+*{box-sizing:border-box}body{margin:0}
+.app{display:grid;grid-template-columns:248px 1fr;background:#F0F4F9;color:#202124;font:14px/1.4 Inter,Roboto,Arial,sans-serif}
+.side{padding:20px 12px}.brand{display:flex;align-items:center;gap:10px;padding:4px 12px 6px;font-size:20px;font-weight:600}
+.logo{width:34px;height:34px;border-radius:12px;background:#1A73E8;color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+.portal{margin:0 12px 14px;font-size:12px;color:#5F6368}
+.nav a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:24px;color:#202124;text-decoration:none}
+.nav a:hover{background:#E4EAF3}.nav a.on{background:#C2E7FF;font-weight:600}
+.ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none}
+.main{padding:20px 28px 28px 12px;min-width:0}
+.top{display:flex;align-items:center;gap:16px;margin-bottom:18px}.top h1{margin:0;font-size:24px;font-weight:500;flex:1}
+.search{height:44px;width:300px;border-radius:24px;background:#fff;border:1px solid #DADCE0;padding:0 18px;display:flex;align-items:center;color:#5F6368}
+.av{width:36px;height:36px;border-radius:50%;background:#EADDFF;display:grid;place-items:center;font-weight:600;flex:none}
+.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
+.grid{display:grid;gap:16px}.stat small{color:#5F6368;display:block;margin-bottom:6px}.stat b{font-size:24px;font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500}
+.ok{background:#C4EED0;color:#0D652D}.late{background:#FEF3C7;color:#7A4F00}.bad{background:#FCE8E6;color:#A50E0E}.info{background:#C2E7FF;color:#0B3C7A}.mute{background:#F1F3F4;color:#5F6368}
+table{width:100%;border-collapse:collapse}th{text-align:left;color:#5F6368;font-weight:500;font-size:12px;padding:8px 10px;border-bottom:1px solid #DADCE0}td{padding:10px;border-bottom:1px solid #F1F3F4}
+.btn{height:44px;padding:0 24px;border-radius:22px;border:0;background:#1A73E8;color:#fff;font:600 14px Inter,sans-serif}.btn.t{background:#fff;color:#1A73E8;border:1px solid #DADCE0}.btn.w{width:100%}
+.tile{border:1px solid #DADCE0;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px;background:#fff}.tile small{color:#5F6368}.tile.sel{border:2px solid #1A73E8;background:#F0F7FF}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F3F4}.row span{color:#5F6368}
+.bars{display:flex;align-items:flex-end;gap:14px;height:140px}.bars i{flex:1;border-radius:10px 10px 4px 4px;background:#C2E7FF}.bars i.hi{background:#1A73E8}
+.lbl{display:flex;gap:14px;margin-top:6px;font-size:12px;color:#5F6368}.lbl span{flex:1;text-align:center}
+.sw i{display:block;height:48px;border-radius:14px;border:1px solid #DADCE0;margin-bottom:6px}.sw b{font-size:12px;display:block}.sw small{font-size:11px;color:#5F6368}
+.tag{font-size:12px;color:#5F6368}
+</style>
+</helmet>
+<div class="app" style="min-height:760px"><div>
+<aside class="side"><div class="brand"><span class="logo">B</span>BarberStory</div><div class="portal">Owner · owner.example.com</div><nav class="nav">
+<a href="#" class="on"><span class="ic" style="background:#C2E7FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Business Overview</a><a href="#"><span class="ic" style="background:#EADDFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M4 21V8l8-5 8 5v13M9 21v-6h6v6"/></svg></span>Branch Management</a><a href="#"><span class="ic" style="background:#C4EED0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-8"/></svg></span>Revenue Analytics</a><a href="#"><span class="ic" style="background:#F8D7E8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span>All Transactions</a><a href="#"><span class="ic" style="background:#FEF3C7"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg></span>Employee Management</a><a href="#"><span class="ic" style="background:#C2E7FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg></span>Haircut Artists</a><a href="#"><span class="ic" style="background:#EADDFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Employee Attendance</a><a href="#"><span class="ic" style="background:#C4EED0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg></span>Commission Management</a><a href="#"><span class="ic" style="background:#F8D7E8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M3 7h16a2 2 0 012 2v9a2 2 0 01-2 2H3zM3 7l12-3v3"/></svg></span>Income &amp; Expenses</a><a href="#"><span class="ic" style="background:#FEF3C7"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span>Financial Reports</a><a href="#"><span class="ic" style="background:#C2E7FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>System Settings</a>
+</nav></aside></div>
+<main class="main"><div class="top"><h1>Business Overview</h1><span class="tag">Sample data · dev mode</span><div class="search">Search…</div><span class="av">OW</span></div>
+<div style="display:flex;gap:8px;margin-bottom:14px"><span class="pill info">All branches</span><span class="pill mute">Branch 01</span><span class="pill mute">Branch 02</span><span class="pill mute">Branch 03</span></div>
+<div class="grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="card stat"><small>Total revenue</small><b>Rp94.500.000</b></div><div class="card stat"><small>Transactions</small><b>2.520</b></div><div class="card stat"><small>Branches</small><b>3</b></div><div class="card stat"><small>Active employees</small><b>96</b></div>
+<div class="card stat"><small>Total commissions</small><b>Rp25.200.000</b></div><div class="card stat"><small>Additional income</small><b>Rp3.000.000</b></div><div class="card stat"><small>Total expenses</small><b>Rp18.400.000</b></div><div class="card stat" style="background:#C4EED0;border-color:#C4EED0"><small style="color:#0D652D">Net operating result</small><b style="color:#0D652D">Rp53.900.000</b></div></div>
+<div class="card" style="margin-top:16px"><h2>Branch comparison</h2><table><tr><th>Branch</th><th>Admin</th><th>Transactions</th><th>Revenue</th><th>Commissions</th><th>Status</th></tr>
+<tr><td>Branch 01</td><td>Admin 01</td><td>870</td><td>Rp31.500.000</td><td>Rp8.700.000</td><td><span class="pill ok">Active</span></td></tr>
+<tr><td>Branch 02</td><td>Admin 02</td><td>905</td><td>Rp33.100.000</td><td>Rp9.050.000</td><td><span class="pill ok">Active</span></td></tr>
+<tr><td>Branch 03</td><td>Admin 03</td><td>745</td><td>Rp29.900.000</td><td>Rp7.450.000</td><td><span class="pill ok">Active</span></td></tr></table></div>
+</main></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":760}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

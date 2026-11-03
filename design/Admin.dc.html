@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Admin Portal</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700">
+<style>
+*{box-sizing:border-box}body{margin:0}
+.app{display:grid;grid-template-columns:248px 1fr;background:#F0F4F9;color:#202124;font:14px/1.4 Inter,Roboto,Arial,sans-serif}
+.side{padding:20px 12px}.brand{display:flex;align-items:center;gap:10px;padding:4px 12px 6px;font-size:20px;font-weight:600}
+.logo{width:34px;height:34px;border-radius:12px;background:#1A73E8;color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+.portal{margin:0 12px 14px;font-size:12px;color:#5F6368}
+.nav a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:24px;color:#202124;text-decoration:none}
+.nav a:hover{background:#E4EAF3}.nav a.on{background:#C2E7FF;font-weight:600}
+.ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none}
+.main{padding:20px 28px 28px 12px;min-width:0}
+.top{display:flex;align-items:center;gap:16px;margin-bottom:18px}.top h1{margin:0;font-size:24px;font-weight:500;flex:1}
+.search{height:44px;width:300px;border-radius:24px;background:#fff;border:1px solid #DADCE0;padding:0 18px;display:flex;align-items:center;color:#5F6368}
+.av{width:36px;height:36px;border-radius:50%;background:#EADDFF;display:grid;place-items:center;font-weight:600;flex:none}
+.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
+.grid{display:grid;gap:16px}.stat small{color:#5F6368;display:block;margin-bottom:6px}.stat b{font-size:24px;font-weight:600}
+.pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500}
+.ok{background:#C4EED0;color:#0D652D}.late{background:#FEF3C7;color:#7A4F00}.bad{background:#FCE8E6;color:#A50E0E}.info{background:#C2E7FF;color:#0B3C7A}.mute{background:#F1F3F4;color:#5F6368}
+table{width:100%;border-collapse:collapse}th{text-align:left;color:#5F6368;font-weight:500;font-size:12px;padding:8px 10px;border-bottom:1px solid #DADCE0}td{padding:10px;border-bottom:1px solid #F1F3F4}
+.btn{height:44px;padding:0 24px;border-radius:22px;border:0;background:#1A73E8;color:#fff;font:600 14px Inter,sans-serif}.btn.t{background:#fff;color:#1A73E8;border:1px solid #DADCE0}.btn.w{width:100%}
+.tile{border:1px solid #DADCE0;border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:2px;background:#fff}.tile small{color:#5F6368}.tile.sel{border:2px solid #1A73E8;background:#F0F7FF}
+.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F3F4}.row span{color:#5F6368}
+.bars{display:flex;align-items:flex-end;gap:14px;height:140px}.bars i{flex:1;border-radius:10px 10px 4px 4px;background:#C2E7FF}.bars i.hi{background:#1A73E8}
+.lbl{display:flex;gap:14px;margin-top:6px;font-size:12px;color:#5F6368}.lbl span{flex:1;text-align:center}
+.sw i{display:block;height:48px;border-radius:14px;border:1px solid #DADCE0;margin-bottom:6px}.sw b{font-size:12px;display:block}.sw small{font-size:11px;color:#5F6368}
+.tag{font-size:12px;color:#5F6368}
+</style>
+</helmet>
+<div class="app" style="min-height:760px"><div>
+<aside class="side"><div class="brand"><span class="logo">B</span>BarberStory</div><div class="portal">Admin · Branch 01 · admin.example.com</div><nav class="nav">
+<a href="#" class="on"><span class="ic" style="background:#C2E7FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Overview</a><a href="#"><span class="ic" style="background:#EADDFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M4 20V10M12 20V4M20 20v-8"/></svg></span>Analytics</a><a href="#"><span class="ic" style="background:#C4EED0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span>Transactions</a><a href="#"><span class="ic" style="background:#F8D7E8"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg></span>Cashiers</a><a href="#"><span class="ic" style="background:#FEF3C7"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 15-5 16 0"/></svg></span>Haircut Artists</a><a href="#"><span class="ic" style="background:#C2E7FF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>Employee Attendance</a><a href="#"><span class="ic" style="background:#EADDFF"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span>Reports</a><a href="#"><span class="ic" style="background:#C4EED0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202124" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span>Profile</a>
+</nav></aside></div>
+<main class="main"><div class="top"><h1>Overview</h1><span class="tag">Sample data · dev mode</span><div class="search">Search…</div><span class="av">A1</span></div>
+<div class="grid" style="grid-template-columns:repeat(4,1fr)"><div class="card stat"><small>Daily revenue</small><b>Rp1.260.000</b></div><div class="card stat"><small>Weekly revenue</small><b>Rp7.840.000</b></div><div class="card stat"><small>Monthly revenue</small><b>Rp31.500.000</b></div><div class="card stat"><small>Avg. transaction</small><b>Rp38.000</b></div></div>
+<div class="grid" style="grid-template-columns:1fr 1.3fr;margin-top:16px">
+<div class="card"><h2>Revenue · this week</h2><div class="bars"><i style="height:45%"></i><i style="height:60%"></i><i style="height:52%"></i><i style="height:78%"></i><i style="height:66%"></i><i class="hi" style="height:100%"></i><i style="height:40%"></i></div><div class="lbl"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div></div>
+<div class="card"><h2>Today's attendance</h2><div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap"><span class="pill ok">Present 24</span><span class="pill late">Late 2</span><span class="pill bad">Absent 3</span><span class="pill info">Not checked out 5</span></div>
+<table><tr><th>Employee</th><th>Check-in</th><th>Check-out</th><th>Status</th></tr>
+<tr><td>Artist 01</td><td>09:02</td><td>—</td><td><span class="pill ok">Present</span></td></tr><tr><td>Artist 02</td><td>09:41</td><td>—</td><td><span class="pill late">Late</span></td></tr><tr><td>Artist 03</td><td>—</td><td>—</td><td><span class="pill bad">Absent</span></td></tr><tr><td>Cashier 01</td><td>08:55</td><td>17:03</td><td><span class="pill ok">Present</span></td></tr></table></div></div>
+</main></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":760}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  CASHIER
+  EMPLOYEE
+}
+
+enum TxStatus {
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum AttStatus {
+  PRESENT
+  LATE
+  INCOMPLETE
+  ABSENT
+  ON_LEAVE
+}
+
+// PERCENT_BP: 200 = 2%, integer math only
+enum RuleType {
+  FIXED
+  PERCENT_BP
+}
+
+enum PayStatus {
+  PENDING
+  APPROVED
+  PAID
+  REVERSED
+}
+
+model Branch {
+  id            String   @id @default(cuid())
+  name          String
+  timezone      String   @default("Asia/Jakarta")
+  shiftStartMin Int      @default(540) // minutes after local midnight
+  lateGraceMin  Int      @default(10)
+  active        Boolean  @default(true)
+  deletedAt     DateTime?
+  users         User[]
+  services      Service[]
+  transactions  Transaction[]
+  attendance    AttendanceRecord[]
+  devices       Device[]
+  incomes       IncomeRecord[]
+  expenses      ExpenseRecord[]
+  rules         CommissionRule[]
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  pinHash     String
+  role        Role
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  branchId    String? // null only for OWNER
+  active      Boolean  @default(true)
+  deletedAt   DateTime?
+  sessions    Session[]
+  card        EmployeeCard?
+  attendance  AttendanceRecord[]
+  cashierTx   Transaction[]    @relation("cashier")
+  artistTx    Transaction[]    @relation("artist")
+  commissions Commission[]
+  rules       CommissionRule[]
+
+  @@index([branchId, role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Device {
+  id       String  @id @default(cuid()) // attendance kiosk, bound to one branch
+  branch   Branch  @relation(fields: [branchId], references: [id])
+  branchId String
+  keyHash  String  @unique
+  active   Boolean @default(true)
+}
+
+model EmployeeCard {
+  id        String  @id @default(cuid())
+  user      User    @relation(fields: [userId], references: [id])
+  userId    String  @unique
+  tokenHash String  @unique // sha256(pepper + raw UID); raw UID never stored
+  active    Boolean @default(true)
+}
+
+model AttendanceRecord {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  branchId    String
+  workDate    String // YYYY-MM-DD in branch timezone
+  checkInAt   DateTime
+  checkOutAt  DateTime?
+  status      AttStatus
+
+  @@unique([userId, workDate])
+  @@index([branchId, workDate])
+}
+
+model Service {
+  id           String        @id @default(cuid())
+  branch       Branch?       @relation(fields: [branchId], references: [id])
+  branchId     String? // null = all branches
+  name         String
+  description  String?
+  priceRp      Int
+  active       Boolean       @default(true)
+  deletedAt    DateTime?
+  transactions Transaction[]
+}
+
+model Transaction {
+  id             String      @id @default(cuid())
+  publicId       String      @unique
+  idempotencyKey String      @unique
+  branch         Branch      @relation(fields: [branchId], references: [id])
+  branchId       String
+  cashier        User        @relation("cashier", fields: [cashierId], references: [id])
+  cashierId      String
+  artist         User        @relation("artist", fields: [artistId], references: [id])
+  artistId       String
+  service        Service     @relation(fields: [serviceId], references: [id])
+  serviceId      String
+  serviceName    String // price/name snapshot
+  priceRp        Int
+  discountRp     Int
+  totalRp        Int
+  cashReceivedRp Int
+  changeRp       Int
+  customerName   String?
+  status         TxStatus    @default(COMPLETED)
+  createdAt      DateTime    @default(now())
+  commissions    Commission[]
+
+  @@index([branchId, createdAt])
+  @@index([artistId, createdAt])
+}
+
+model CommissionRule {
+  id            String       @id @default(cuid())
+  role          Role
+  branch        Branch?      @relation(fields: [branchId], references: [id])
+  branchId      String?
+  user          User?        @relation(fields: [userId], references: [id])
+  userId        String?
+  type          RuleType
+  value         Int
+  effectiveFrom DateTime
+  effectiveTo   DateTime?
+  active        Boolean      @default(true)
+  commissions   Commission[]
+}
+
+model Commission {
+  id            String         @id @default(cuid())
+  transaction   Transaction    @relation(fields: [transactionId], references: [id])
+  transactionId String
+  user          User           @relation(fields: [userId], references: [id])
+  userId        String
+  rule          CommissionRule @relation(fields: [ruleId], references: [id])
+  ruleId        String
+  amountRp      Int // snapshot, never recomputed
+  status        PayStatus      @default(PENDING)
+  createdAt     DateTime       @default(now())
+
+  @@unique([transactionId, userId])
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  meta      Json?
+  createdAt DateTime @default(now())
+}
+
+model IncomeRecord {
+  id            String    @id @default(cuid())
+  date          DateTime
+  category      String
+  description   String
+  amountRp      Int
+  branch        Branch?   @relation(fields: [branchId], references: [id])
+  branchId      String?
+  paymentMethod String
+  attachment    String? // proof: link or note (file upload not built yet)
+  createdById   String
+  voidedAt      DateTime?
+  voidReason    String?
+  createdAt     DateTime  @default(now())
+
+  @@index([date])
+}
+
+model ExpenseRecord {
+  id            String    @id @default(cuid())
+  date          DateTime
+  category      String
+  description   String
+  amountRp      Int
+  branch        Branch?   @relation(fields: [branchId], references: [id])
+  branchId      String?
+  paymentMethod String
+  attachment    String? // proof: link or note (file upload not built yet)
+  createdById   String
+  voidedAt      DateTime?
+  voidReason    String?
+  createdAt     DateTime  @default(now())
+
+  @@index([date])
+}

@@ -1,0 +1,16 @@
+import { prisma } from "@/lib/db"; import { ownerCtx, TZ } from "@/lib/owner"; import { startOfLocalMonth, rp } from "@/lib/time"; import { F } from "@/components/F"; import Tbl from "@/components/Tbl"; import { saveBranch, assignAdmin } from "../actions";
+const hm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+const BF = ({ b }: { b?: any }) => (<form action={saveBranch} className="fr">{b && <input type="hidden" name="id" value={b.id} />}<F l="Nama" n="name" d={b?.name} r /><F l="Zona waktu" n="timezone" d={b?.timezone ?? "Asia/Jakarta"} r />
+  <F l="Awal shift" n="shiftStart" t="time" d={hm(b?.shiftStartMin ?? 540)} r /><F l="Toleransi terlambat (menit)" n="lateGraceMin" t="number" d={b?.lateGraceMin ?? 10} r />
+  {b && <label><input type="checkbox" name="active" defaultChecked={b.active} /> Aktif</label>}<button className="btn s">Simpan</button></form>);
+export default async function Branches() {
+  await ownerCtx(); const gte = startOfLocalMonth(TZ);
+  const [bs, users, rev, admins] = await Promise.all([prisma.branch.findMany({ where: { deletedAt: null }, orderBy: { name: "asc" } }), prisma.user.findMany({ where: { deletedAt: null, role: { not: "OWNER" } }, select: { id: true, name: true, role: true, branchId: true, active: true } }),
+    prisma.transaction.groupBy({ by: ["branchId"], where: { status: "COMPLETED", createdAt: { gte } }, _sum: { totalRp: true }, _count: true }), prisma.user.findMany({ where: { role: "ADMIN", active: true, deletedAt: null }, select: { id: true, name: true } })]);
+  return (<><h1>Manajemen Cabang</h1><div className="card" style={{ marginBottom: 16 }}><h2>Cabang baru</h2><BF /></div>
+    <Tbl head={["Cabang", "Admin", "Kasir", "Barber", "Pendapatan (bulan)", "Transaksi", "Status", ""]} rows={bs.map((b) => { const u = users.filter((x) => x.branchId === b.id && x.active), r = rev.find((x) => x.branchId === b.id);
+      return [b.name, u.find((x) => x.role === "ADMIN")?.name ?? "—", u.filter((x) => x.role === "CASHIER").length, u.filter((x) => x.role === "EMPLOYEE").length, rp(r?._sum.totalRp ?? 0), r?._count ?? 0,
+        <span className={"pill " + (b.active ? "ok" : "mute")}>{b.active ? "Aktif" : "Nonaktif"}</span>, <details><summary>Ubah</summary><BF b={b} /></details>]; })} />
+    <div className="card" style={{ marginTop: 16 }}><h2>Tetapkan admin ke cabang (satu admin per cabang)</h2><form action={assignAdmin} className="fr"><F l="Admin" n="userId" o={admins.map((a) => [a.id, a.name])} r /><F l="Cabang" n="branchId" o={bs.map((b) => [b.id, b.name])} r /><button className="btn s">Tetapkan</button></form>
+      <div className="portal" style={{ margin: "8px 0 0" }}>Buat admin, kasir, dan barber di Manajemen Karyawan. Nonaktifkan cabang di atas.</div></div></>);
+}

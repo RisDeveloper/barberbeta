@@ -1,0 +1,79 @@
+"use server";
+import { z } from "zod"; import bcrypt from "bcryptjs"; import { randomBytes } from "crypto"; import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db"; import { requireUser, sha256, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
+const me = () => requireUser(["OWNER"]);
+const os = z.string().transform((v) => v.trim() || undefined).optional();
+const int = z.coerce.number().int().min(0), pos = z.coerce.number().int().min(1);
+const get = <T extends z.ZodTypeAny>(s: T, fd: FormData) => s.parse(Object.fromEntries(fd)) as z.infer<T>;
+const done = () => revalidatePath("/owner", "layout");
+const audit = (actorId: string, action: string, entity: string, entityId: string, meta?: object) => prisma.auditLog.create({ data: { actorId, action, entity, entityId, meta: meta as any } });
+const hhmm = (s: string) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
+async function adminTaken(branchId: string, except?: string) { if (await prisma.user.findFirst({ where: { role: "ADMIN", branchId, active: true, deletedAt: null, id: { not: except } } })) throw new HttpError(409, "Cabang ini sudah memiliki admin aktif"); }
+const ROLE = z.enum(["ADMIN", "CASHIER", "EMPLOYEE"]);
+
+export async function saveBranch(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int }), fd);
+  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, active: fd.get("active") === "on" || !d.id };
+  const b = d.id ? await prisma.branch.update({ where: { id: d.id }, data }) : await prisma.branch.create({ data });
+  await audit(o.id, d.id ? "BRANCH_UPDATE" : "BRANCH_CREATE", "Branch", b.id, data); done();
+}
+export async function assignAdmin(fd: FormData) {
+  const o = await me(), d = get(z.object({ userId: z.string(), branchId: z.string() }), fd); await adminTaken(d.branchId, d.userId);
+  await prisma.user.update({ where: { id: d.userId, role: "ADMIN" }, data: { branchId: d.branchId } }); await prisma.session.deleteMany({ where: { userId: d.userId } }); await audit(o.id, "ADMIN_ASSIGN", "User", d.userId, d); done();
+}
+export async function createUser(fd: FormData) {
+  const o = await me(), d = get(z.object({ name: z.string().min(2), email: z.string().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/), role: ROLE, branchId: z.string().min(1) }), fd);
+  if (d.role === "ADMIN") await adminTaken(d.branchId);
+  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12) } }); await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); done();
+}
+export async function updateUser(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: z.string(), name: z.string().min(2), role: ROLE, branchId: z.string().min(1) }), fd), active = fd.get("active") === "on";
+  if (d.id === o.id) throw new HttpError(400, "Tidak dapat mengubah akun Anda sendiri di sini");
+  if (d.role === "ADMIN" && active) await adminTaken(d.branchId, d.id);
+  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); done();
+}
+export async function resetPin(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);
+  await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); done();
+}
+export async function assignCard(fd: FormData) {
+  const o = await me(), d = get(z.object({ userId: z.string(), cardUid: z.string().min(4).max(64) }), fd), tokenHash = sha256(process.env.CARD_PEPPER + d.cardUid);
+  await prisma.employeeCard.upsert({ where: { userId: d.userId }, update: { tokenHash, active: true }, create: { userId: d.userId, tokenHash } }); await audit(o.id, "CARD_ASSIGN", "User", d.userId); done();
+}
+export async function createDevice(_: { key?: string }, fd: FormData) {
+  const o = await me(), d = get(z.object({ branchId: z.string() }), fd), key = randomBytes(24).toString("base64url");
+  const dev = await prisma.device.create({ data: { branchId: d.branchId, keyHash: sha256(key) } }); await audit(o.id, "DEVICE_CREATE", "Device", dev.id); return { key };
+}
+export async function saveService(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, description: os, branchId: os }), fd);
+  const data = { name: d.name, priceRp: d.priceRp, description: d.description ?? null, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
+  const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data }); await audit(o.id, "SERVICE_SAVE", "Service", s.id, data); done();
+}
+const bp = (s: string) => { const m = s.trim().match(/^(\d{1,3})(?:\.(\d{1,2}))?$/); if (!m) throw new HttpError(400, "Persentase tidak valid"); return +m[1] * 100 + +((m[2] ?? "").padEnd(2, "0") || 0); }; // "2.5" -> 250, integer only
+export async function saveRule(fd: FormData) {
+  const o = await me(), d = get(z.object({ role: ROLE, type: z.enum(["FIXED", "PERCENT_BP"]), value: z.string(), branchId: os, userId: os, from: os, to: os }), fd);
+  const value = d.type === "FIXED" ? pos.parse(d.value) : bp(d.value);
+  const r = await prisma.commissionRule.create({ data: { role: d.role, type: d.type, value, branchId: d.branchId, userId: d.userId, effectiveFrom: d.from ? dayStart(d.from, TZ) : new Date(), effectiveTo: d.to ? dayStart(d.to, TZ) : null } });
+  await audit(o.id, "RULE_CREATE", "CommissionRule", r.id, d); done(); // new rules only affect future transactions; old commissions are snapshots
+}
+export async function endRule(fd: FormData) { const o = await me(), id = String(fd.get("id")); await prisma.commissionRule.update({ where: { id }, data: { effectiveTo: new Date() } }); await audit(o.id, "RULE_END", "CommissionRule", id); done(); }
+export async function setCommission(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: z.string(), to: z.enum(["APPROVED", "PAID"]) }), fd);
+  const r = await prisma.commission.updateMany({ where: { id: d.id, status: d.to === "APPROVED" ? "PENDING" : "APPROVED" }, data: { status: d.to } }); if (r.count) await audit(o.id, "COMMISSION_" + d.to, "Commission", d.id); done();
+}
+const model = (k: string) => (prisma as any)[k === "income" ? "incomeRecord" : "expenseRecord"];
+const REC = { kind: z.enum(["income", "expense"]), date: z.string(), category: z.string().min(2), description: z.string().min(2), amountRp: pos, branchId: os, paymentMethod: z.string(), attachment: os };
+export async function addRecord(fd: FormData) {
+  const o = await me(), { kind, date, ...d } = get(z.object(REC), fd); const r = await model(kind).create({ data: { ...d, date: dayStart(date, TZ), createdById: o.id } }); await audit(o.id, "FIN_CREATE", kind, r.id, d); done();
+}
+export async function editRecord(fd: FormData) {
+  const o = await me(), raw = get(z.object({ id: z.string(), reason: z.string().min(3), ...REC }), fd) as any;
+  const { id, reason, kind, date, ...data } = raw, before = await model(kind).findUnique({ where: { id } });
+  if (!before || before.voidedAt) throw new HttpError(400, "Catatan tidak dapat diubah");
+  const clean = { ...data, branchId: data.branchId ?? null, attachment: data.attachment ?? null, date: dayStart(date, TZ) };
+  await model(kind).update({ where: { id }, data: clean }); await audit(o.id, "FIN_EDIT", kind, id, { reason, before, after: clean }); done();
+}
+export async function voidRecord(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: z.string(), kind: z.enum(["income", "expense"]), reason: z.string().min(3) }), fd);
+  await model(d.kind).update({ where: { id: d.id }, data: { voidedAt: new Date(), voidReason: d.reason } }); await audit(o.id, "FIN_VOID", d.kind, d.id, { reason: d.reason }); done();
+}
