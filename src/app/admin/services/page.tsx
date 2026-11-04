@@ -14,7 +14,7 @@ export default async function Services() {
       </form></div>
     <div className="card"><table><thead><tr><th>Nama</th><th>Harga</th><th>Cakupan</th><th></th></tr></thead><tbody>
       {services.map((s) => (<tr key={s.id}><td>{s.name}</td><td>{rp(s.priceRp)}</td><td>{s.branchId === u.branchId ? "Cabang ini" : "Semua cabang"}</td><td>
-        <form action={deleteService} style={{ display: "inline" }}><input type="hidden" name="id" value={s.id} /><button className="btn s t">Hapus</button></form>
+        {s.branchId === u.branchId && (<form action={deleteService} style={{ display: "inline" }}><input type="hidden" name="id" value={s.id} /><button className="btn s t">Hapus</button></form>)}
       </td></tr>))}
       {!services.length && <tr><td colSpan={4}>Belum ada layanan.</td></tr>}</tbody></table></div></>);
 }
