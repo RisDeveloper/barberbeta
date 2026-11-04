@@ -5,10 +5,12 @@ export default async function Services() {
   return (<><h1>Layanan</h1>
     <div className="card" style={{ marginBottom: 16 }}><h2>Tambah layanan</h2>
       <form action={saveService} style={{ display: "grid", gap: 10 }}>
-        <label>Nama<input name="name" className="field" required minLength={2} style={{ margin: 0 }} /></label>
-        <label>Harga (Rp)<input name="priceRp" type="number" min={1} className="field" required style={{ margin: 0 }} /></label>
-        <label>Deskripsi<input name="description" className="field" style={{ margin: 0 }} /></label>
-        <button className="btn" style={{ width: 160 }}>Simpan</button>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <label>Nama<input name="name" className="field" required minLength={2} style={{ margin: 0 }} /></label>
+          <label>Harga (Rp)<input name="priceRp" type="number" min={1} className="field" required style={{ margin: 0 }} /></label>
+        </div>
+        <label>Deskripsi<input name="description" className="field" style={{ margin: 0, minHeight: 80 }} /></label>
+        <button className="btn" style={{ width: "100%" }}>Simpan</button>
       </form></div>
     <div className="card"><table><thead><tr><th>Nama</th><th>Harga</th><th>Cakupan</th><th></th></tr></thead><tbody>
       {services.map((s) => (<tr key={s.id}><td>{s.name}</td><td>{rp(s.priceRp)}</td><td>{s.branchId === u.branchId ? "Cabang ini" : "Semua cabang"}</td><td>
