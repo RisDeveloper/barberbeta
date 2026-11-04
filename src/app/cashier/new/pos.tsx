@@ -65,7 +65,9 @@ export default function POS() {
     <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br /><button className="btn" onClick={reset}>Transaksi baru</button></div>);
   return (<div className="pos"><div className="grid">
     <div className="card"><h2>1 · Pilih layanan</h2><div className="grid tg">
-      {services.map((s) => (<button key={s.id} className={"tile" + (s.id === sid ? " sel" : "")} onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }}><b>{s.name}</b><small>{s.description ?? ""}</small><span>{rp(s.priceRp)}</span></button>))}
+      {services.map((s) => (<div key={s.id} className={"tile" + (s.id === sid ? " sel" : "")} onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }} style={{ position: "relative" }}>
+        <button type="button" onClick={(e) => { e.stopPropagation(); if (!window.confirm("Hapus layanan ini?")) return; fetch("/api/services?id=" + s.id, { method: "DELETE" }).then((r) => { if (r.ok) { setS((prev) => prev.filter((x) => x.id !== s.id)); if (sid === s.id) setSid(""); } }); }} style={{ position: "absolute", top: 6, right: 6, border: 0, background: "transparent", cursor: "pointer", fontSize: 14 }}>×</button>
+        <b>{s.name}</b><small>{s.description ?? ""}</small><span>{rp(s.priceRp)}</span></div>))}
       <button className="tile" onClick={() => setAdding(true)}><b>+</b><small>Tambah layanan</small><span>Baru</span></button></div>
       {adding && (<div className="card" style={{ marginTop: 8 }}>
         <label>Nama<input className="field" value={newName} onChange={(e) => setNewName(e.target.value)} /></label>
