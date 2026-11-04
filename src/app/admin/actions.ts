@@ -24,7 +24,7 @@ export async function saveService(fd: FormData) {
 export async function deleteService(fd: FormData) {
   const u = await guard("ADMIN");
   const id = String(fd.get("id"));
-  const s = await prisma.service.findFirst({ where: { id, branchId: u.branchId } });
+  const s = await prisma.service.findFirst({ where: { id } });
   if (!s) throw new HttpError(404, "Layanan tidak ditemukan");
   await prisma.service.update({ where: { id }, data: { deletedAt: new Date(), active: false } });
   revalidatePath("/admin/services");
