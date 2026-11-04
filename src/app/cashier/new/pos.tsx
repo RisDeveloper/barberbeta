@@ -51,7 +51,6 @@ export default function POS() {
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const shown = artists.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (!onlyAvail || a.available));
   useEffect(() => { if (pay === "qris") setCash(total); }, [pay, total]);
-  useEffect(() => { const el = cashRef.current; if (el) { el.selectionStart = el.selectionEnd = el.value.length; } }, [cash]);
   async function confirm() {
     setBusy(true); setErr(""); key.current ??= crypto.randomUUID(); // same key on retry = no double charge
     const r = await fetch("/api/transactions", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -82,7 +81,18 @@ export default function POS() {
       </div>
       {pay === "cash" && (<>
         <label htmlFor="r" style={{ display: "block", marginTop: 8 }}>Tunai diterima (Rp)</label>
-        <input id="r" ref={cashRef} className="field" inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => { const d = e.target.value.replace(/\\D/g, ""); setCash(d ? parseInt(d, 10) : 0); }} />
+        <input id="r" ref={cashRef} className="field" inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => {
+          const input = e.target; const cursor = input.selectionStart ?? input.value.length;
+          const digitsBefore = input.value.slice(0, cursor).replace(/\\D/g, "").length;
+          const digits = input.value.replace(/\\D/g, "");
+          setCash(digits ? parseInt(digits, 10) : 0);
+          requestAnimationFrame(() => {
+            const el = cashRef.current; if (!el) return;
+            const formatted = el.value; let pos = 0, count = 0;
+            for (let i = 0; i < formatted.length; i++) { if (/\\d/.test(formatted[i])) count++; pos = i + 1; if (count >= digitsBefore) break; }
+            el.selectionStart = el.selectionEnd = pos;
+          });
+        }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "6px 0" }}>
           {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: 120 }} onClick={() => setCash(v)}>{rp(v)}</button>))}
         </div>
