@@ -85,13 +85,13 @@ export default function POS() {
           const input = e.target; const cursor = input.selectionStart ?? input.value.length;
           const digitsBefore = input.value.slice(0, cursor).replace(/\\D/g, "").length;
           const digits = input.value.replace(/\\D/g, "");
-          setCash(digits ? parseInt(digits, 10) : 0);
-          requestAnimationFrame(() => {
-            const el = cashRef.current; if (!el) return;
-            const formatted = el.value; let pos = 0, count = 0;
-            for (let i = 0; i < formatted.length; i++) { if (/\\d/.test(formatted[i])) count++; pos = i + 1; if (count >= digitsBefore) break; }
-            el.selectionStart = el.selectionEnd = pos;
-          });
+          const num = digits ? parseInt(digits, 10) : 0;
+          const formatted = num ? num.toLocaleString("id-ID") : "";
+          input.value = formatted;
+          let pos = 0, count = 0;
+          for (let i = 0; i < formatted.length; i++) { if (/\\d/.test(formatted[i])) count++; pos = i + 1; if (count >= digitsBefore) break; }
+          input.selectionStart = input.selectionEnd = pos;
+          setCash(num);
         }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "6px 0" }}>
           {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: 120 }} onClick={() => setCash(v)}>{rp(v)}</button>))}
