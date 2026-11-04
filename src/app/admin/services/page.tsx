@@ -5,11 +5,11 @@ export default async function Services() {
   return (<><h1>Layanan</h1>
     <div className="card" style={{ marginBottom: 16 }}><h2>Tambah layanan</h2>
       <form action={saveService} style={{ display: "grid", gap: 10 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          <label>Nama<input name="name" className="field" required minLength={2} style={{ margin: 0 }} /></label>
-          <label>Harga (Rp)<input name="priceRp" type="number" min={1} className="field" required style={{ margin: 0 }} /></label>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <label style={{ flex: 1, minWidth: 160 }}>Nama<input name="name" className="field" required minLength={2} style={{ margin: 0 }} /></label>
+          <label style={{ flex: 1, minWidth: 160 }}>Harga (Rp)<input name="priceRp" type="number" min={1} className="field" required style={{ margin: 0 }} /></label>
         </div>
-        <label>Deskripsi<input name="description" className="field" style={{ margin: 0, minHeight: 80 }} /></label>
+        <label>Deskripsi<textarea name="description" className="field" rows={3} style={{ margin: 0, resize: "vertical" }} /></label>
         <button className="btn" style={{ width: "100%" }}>Simpan</button>
       </form></div>
     <div className="card"><table><thead><tr><th>Nama</th><th>Harga</th><th>Cakupan</th><th></th></tr></thead><tbody>
