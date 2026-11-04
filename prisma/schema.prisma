@@ -153,6 +153,9 @@ model Transaction {
   changeRp       Int
   customerName   String?
   status         TxStatus    @default(COMPLETED)
+  cancelRequested Boolean   @default(false)
+  cancelReason   String?
+  cancelKind     TxStatus?
   createdAt      DateTime    @default(now())
   commissions    Commission[]
 
