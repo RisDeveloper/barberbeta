@@ -83,8 +83,8 @@ export default function POS() {
         <label htmlFor="r" style={{ display: "block", marginTop: 8 }}>Tunai diterima (Rp)</label>
         <input id="r" ref={cashRef} className="field" inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => {
           const input = e.target; const cursor = input.selectionStart ?? input.value.length;
-          const digitsBefore = input.value.slice(0, cursor).replace(/\\D/g, "").length;
-          const digits = input.value.replace(/\\D/g, "");
+          const digitsBefore = input.value.slice(0, cursor).replace(/[^0-9]/g, "").length;
+          const digits = input.value.replace(/[^0-9]/g, "");
           const num = digits ? parseInt(digits, 10) : 0;
           const formatted = num ? num.toLocaleString("id-ID") : "";
           input.value = formatted;
