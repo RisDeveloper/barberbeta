@@ -12,7 +12,7 @@ export const GET = () => handle(async () => {
 });
 
 export const POST = (req: Request) => handle(async () => {
-  const u = await requireUser(["CASHIER", "ADMIN", "OWNER"]); const branchId = branchScope(u);
+  const u = await requireUser(["ADMIN", "OWNER"]); const branchId = branchScope(u);
   if (!branchId) throw new HttpError(400, "Cabang tidak ditemukan");
   const d = Body.parse(await req.json());
   const s = await prisma.service.create({ data: { name: d.name, priceRp: d.priceRp, description: d.description ?? null, branchId } });
@@ -20,7 +20,7 @@ export const POST = (req: Request) => handle(async () => {
 });
 
 export const DELETE = (req: Request) => handle(async () => {
-  const u = await requireUser(["CASHIER", "ADMIN", "OWNER"]); const branchId = branchScope(u);
+  const u = await requireUser(["ADMIN", "OWNER"]); const branchId = branchScope(u);
   const id = new URL(req.url).searchParams.get("id");
   if (!id) throw new HttpError(400, "ID layanan wajib");
   const s = await prisma.service.findFirst({ where: { id, branchId: branchId ?? undefined, deletedAt: null } });

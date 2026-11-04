@@ -38,7 +38,7 @@ function buildQris(staticQris: string, amount: number) {
 type S = { id: string; name: string; description: string | null; priceRp: number }; type A = { id: string; name: string; available: boolean };
 export default function POS() {
   const [services, setS] = useState<S[]>([]), [artists, setA] = useState<A[]>([]);
-  const [adding, setAdding] = useState(false), [newName, setNewName] = useState(""), [newPrice, setNewPrice] = useState(""), [newDesc, setNewDesc] = useState("");
+
   const [sid, setSid] = useState(""), [aid, setAid] = useState(""), [q, setQ] = useState(""), [onlyAvail, setOnly] = useState(false);
   const [disc, setDisc] = useState(0), [cash, setCash] = useState(0), [cust, setCust] = useState("");
   const [pay, setPay] = useState<"cash" | "qris">("cash");
@@ -65,23 +65,7 @@ export default function POS() {
     <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br /><button className="btn" onClick={reset}>Transaksi baru</button></div>);
   return (<div className="pos"><div className="grid">
     <div className="card"><h2>1 · Pilih layanan</h2><div className="grid tg">
-      {services.map((s) => (<div key={s.id} className={"tile" + (s.id === sid ? " sel" : "")} onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }} style={{ position: "relative" }}>
-        <button type="button" onClick={(e) => { e.stopPropagation(); if (!window.confirm("Hapus layanan ini?")) return; fetch("/api/services?id=" + s.id, { method: "DELETE" }).then((r) => { if (r.ok) { setS((prev) => prev.filter((x) => x.id !== s.id)); if (sid === s.id) setSid(""); } }); }} style={{ position: "absolute", top: 6, right: 6, border: 0, background: "transparent", cursor: "pointer", fontSize: 14 }}>×</button>
-        <b>{s.name}</b><small>{s.description ?? ""}</small><span>{rp(s.priceRp)}</span></div>))}
-      <button className="tile" onClick={() => setAdding(true)}><b>+</b><small>Tambah layanan</small><span>Baru</span></button></div>
-      {adding && (<div className="card" style={{ marginTop: 8 }}>
-        <label>Nama<input className="field" value={newName} onChange={(e) => setNewName(e.target.value)} /></label>
-        <label>Harga (Rp)<input className="field" inputMode="numeric" value={newPrice} onChange={(e) => setNewPrice(e.target.value.replace(/[^0-9]/g, ""))} /></label>
-        <label>Deskripsi (opsional)<input className="field" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} /></label>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn" disabled={!newName.trim() || !newPrice} onClick={async () => {
-            const r = await fetch("/api/services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newName.trim(), priceRp: parseInt(newPrice, 10), description: newDesc.trim() || undefined }) });
-            const d = await r.json(); if (!r.ok) return setErr(d.error ?? "Gagal");
-            setS((prev) => [...prev, d.service]); setSid(d.service.id); setAdding(false); setNewName(""); setNewPrice(""); setNewDesc(""); load();
-          }}>Simpan</button>
-          <button className="btn t" onClick={() => setAdding(false)}>Batal</button>
-        </div>
-      </div>)}</div>
+      {services.map((s) => (<button key={s.id} className={"tile" + (s.id === sid ? " sel" : "")} onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }}><b>{s.name}</b><small>{s.description ?? ""}</small><span>{rp(s.priceRp)}</span></button>))}</div></div>
     <div className="card"><h2>2 · Pilih barber</h2>
       <div className="grid tg">{shown.map((a) => (
         <button key={a.id} className={"tile" + (a.id === aid ? " sel" : "")} onClick={() => setAid(a.id)}><b>{a.name}</b><span className={"pill " + (a.available ? "ok" : "mute")}>{a.available ? "Tersedia" : "Belum absen"}</span></button>))}</div>
