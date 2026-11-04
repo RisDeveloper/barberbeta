@@ -7,7 +7,8 @@
     "start": "next start",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
-    "db:seed:dev": "tsx prisma/seed-dev.ts"
+    "db:seed:dev": "tsx prisma/seed-dev.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
