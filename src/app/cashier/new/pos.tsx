@@ -65,8 +65,7 @@ export default function POS() {
   return (<div className="pos"><div className="grid">
     <div className="card"><h2>1 · Pilih layanan</h2><div className="grid tg">
       {services.map((s) => (<button key={s.id} className={"tile" + (s.id === sid ? " sel" : "")} onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }}><b>{s.name}</b><small>{s.description ?? ""}</small><span>{rp(s.priceRp)}</span></button>))}</div></div>
-    <div className="card"><h2>2 · Pilih barber</h2><div style={{ marginBottom: 12 }}>
-      <input className="field" style={{ margin: 0 }} placeholder="Cari barber" aria-label="Cari barber" value={q} onChange={(e) => setQ(e.target.value)} /></div>
+    <div className="card"><h2>2 · Pilih barber</h2>
       <div className="grid tg">{shown.map((a) => (
         <button key={a.id} className={"tile" + (a.id === aid ? " sel" : "")} onClick={() => setAid(a.id)}><b>{a.name}</b><span className={"pill " + (a.available ? "ok" : "mute")}>{a.available ? "Tersedia" : "Belum absen"}</span></button>))}</div>
       <button className={"btn" + (onlyAvail ? "" : " t")} style={{ width: "100%", marginTop: 8 }} onClick={() => setOnly(!onlyAvail)}>Hanya yang tersedia</button></div></div>
