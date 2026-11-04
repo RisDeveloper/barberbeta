@@ -9,7 +9,7 @@ export default async function Services() {
           <label style={{ flex: 1, minWidth: 160 }}>Nama<input name="name" className="field" required minLength={2} style={{ margin: 0 }} /></label>
           <label style={{ flex: 1, minWidth: 160 }}>Harga (Rp)<input name="priceRp" type="number" min={1} className="field" required style={{ margin: 0 }} /></label>
         </div>
-        <label>Deskripsi<textarea name="description" className="field" rows={3} style={{ margin: 0, resize: "vertical" }} /></label>
+        <label>Deskripsi<textarea name="description" className="field" rows={6} style={{ margin: 0, resize: "vertical" }} /></label>
         <button className="btn" style={{ width: "100%" }}>Simpan</button>
       </form></div>
     <div className="card"><table><thead><tr><th>Nama</th><th>Harga</th><th>Cakupan</th><th></th></tr></thead><tbody>
