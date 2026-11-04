@@ -93,8 +93,8 @@ export default function POS() {
           input.selectionStart = input.selectionEnd = pos;
           setCash(num);
         }} />
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "6px 0" }}>
-          {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: 120 }} onClick={() => setCash(v)}>{rp(v)}</button>))}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "6px 0" }}>
+          {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: "100%" }} onClick={() => setCash(v)}>{rp(v)}</button>))}
         </div>
         <div style={{ background: "#C4EED0", color: "#0D652D", borderRadius: 16, padding: "12px 16px", margin: "4px 0 12px" }}><small>Kembalian</small><div style={{ fontSize: 26, fontWeight: 600 }}>{svc && change >= 0 ? rp(change) : "—"}</div></div>
       </>)}
