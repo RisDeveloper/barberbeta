@@ -41,6 +41,7 @@ export default function POS() {
   const [sid, setSid] = useState(""), [aid, setAid] = useState(""), [q, setQ] = useState(""), [onlyAvail, setOnly] = useState(false);
   const [disc, setDisc] = useState(0), [cash, setCash] = useState(0), [cust, setCust] = useState("");
   const [pay, setPay] = useState<"cash" | "qris">("cash");
+  const [cashFocus, setCashFocus] = useState(false);
   const qrisStatic = process.env.NEXT_PUBLIC_QRIS_STATIC ?? "";
   const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number } | null>(null);
   const key = useRef<string>();
@@ -80,7 +81,7 @@ export default function POS() {
       </div>
       {pay === "cash" && (<>
         <label htmlFor="r" style={{ display: "block", marginTop: 8 }}>Tunai diterima (Rp)</label>
-        <input id="r" className="field" inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => { const d = e.target.value.replace(/\\D/g, ""); setCash(d ? parseInt(d, 10) : 0); }} />
+        <input id="r" className="field" inputMode="numeric" value={cashFocus ? (cash ? String(cash) : "") : (cash ? cash.toLocaleString("id-ID") : "")} onFocus={() => setCashFocus(true)} onBlur={() => setCashFocus(false)} onChange={(e) => { const d = e.target.value.replace(/\\D/g, ""); setCash(d ? parseInt(d, 10) : 0); }} />
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "6px 0" }}>
           {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: 120 }} onClick={() => setCash(v)}>{rp(v)}</button>))}
         </div>
