@@ -81,7 +81,7 @@ export default function POS() {
       </div>
       {pay === "cash" && (<>
         <label htmlFor="r" style={{ display: "block", marginTop: 8 }}>Tunai diterima (Rp)</label>
-        <input id="r" ref={cashRef} className="field" inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => {
+        <input id="r" ref={cashRef} className="field" style={{ maxWidth: 260, margin: "0 auto", display: "block" }} inputMode="numeric" value={cash ? cash.toLocaleString("id-ID") : ""} onChange={(e) => {
           const input = e.target; const cursor = input.selectionStart ?? input.value.length;
           const digitsBefore = input.value.slice(0, cursor).replace(/[^0-9]/g, "").length;
           const digits = input.value.replace(/[^0-9]/g, "");
@@ -93,10 +93,10 @@ export default function POS() {
           input.selectionStart = input.selectionEnd = pos;
           setCash(num);
         }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "6px 0" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, margin: "6px auto", maxWidth: 260 }}>
           {[50000, 100000].map((v) => (<button key={v} type="button" className="btn t" style={{ width: "100%" }} onClick={() => setCash(v)}>{rp(v)}</button>))}
         </div>
-        <div style={{ background: "#C4EED0", color: "#0D652D", borderRadius: 16, padding: "12px 16px", margin: "4px 0 12px" }}><small>Kembalian</small><div style={{ fontSize: 26, fontWeight: 600 }}>{svc && change >= 0 ? rp(change) : "—"}</div></div>
+        <div style={{ background: "#C4EED0", color: "#0D652D", borderRadius: 16, padding: "12px 16px", margin: "4px auto 12px", maxWidth: 260 }}><small>Kembalian</small><div style={{ fontSize: 26, fontWeight: 600 }}>{svc && change >= 0 ? rp(change) : "—"}</div></div>
       </>)}
       {pay === "qris" && (<div style={{ textAlign: "center", margin: "8px 0 12px" }}>
         {!qrisStatic && <div className="err">Set NEXT_PUBLIC_QRIS_STATIC di .env untuk QRIS dinamis.</div>}
