@@ -1,0 +1,2 @@
+import { guard } from "@/lib/guard"; import AttendanceForm from "./AttendanceForm";
+export default async function Attendance() { await guard("CASHIER"); return (<><h1>Absensi Karyawan</h1><AttendanceForm /></>); }
