@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link"; import { usePathname } from "next/navigation";
+import Link from "next/link"; import { usePathname } from "next/navigation"; import { useState } from "react";
 const S = { width: 18, height: 18, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true } as const;
 function icon(l: string, prefix = "") {
   if (/transaksi baru/i.test(l)) return <svg {...S}><path d="M12 5v14M5 12h14" /></svg>;
@@ -16,11 +16,24 @@ function icon(l: string, prefix = "") {
   if (/profil/i.test(l)) return prefix === "/admin" ? <svg {...S}><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg> : <svg {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21c1-5 15-5 16 0" /></svg>;
   if (/transaksi|riwayat/i.test(l)) return <svg {...S}><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>;
   if (/keluar/i.test(l)) return <svg {...S}><path d="M10 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5M16 17l5-5-5-5M21 12H9" /></svg>;
+  if (/lainnya/i.test(l)) return <svg {...S}><path d="M4 6h16M4 12h16M4 18h16" /></svg>;
   return <svg {...S}><circle cx="12" cy="12" r="8" /></svg>;
 }
 export default function PortalNav({ items, prefix }: { items: [string, string, string][]; prefix: string }) {
   const raw = usePathname() ?? "/", pathMode = raw === prefix || raw.startsWith(prefix + "/"), p = (pathMode ? raw.slice(prefix.length) : raw) || "/";
+  const [more, setMore] = useState(false);
   async function logout() { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = process.env.NEXT_PUBLIC_AUTH_URL ?? "/"; }
-  return (<nav className="nav">{items.map(([h, l, c]) => (<Link key={h} href={pathMode ? prefix + h : h} title={l} className={p === h ? "on" : ""}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span>{l}</Link>))}
-    <button onClick={logout} title="Keluar"><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span>Keluar</button></nav>);
+  const over = items.length + 1 > 6, extra = over ? items.slice(5) : [];
+  const link = ([h, l, c]: [string, string, string], i: number) => (
+    <Link key={h} href={pathMode ? prefix + h : h} title={l} onClick={() => setMore(false)} className={(p === h ? "on " : "") + (i >= 5 ? "extra" : "")}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span>{l}</Link>);
+  return (<nav className="nav">{items.map(link)}
+    <button onClick={logout} title="Keluar" className={"logoutBtn" + (over ? " extra" : "")}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span>Keluar</button>
+    {over && <>
+      <button className="moreBtn" onClick={() => setMore((v) => !v)} aria-label="Menu lainnya" aria-expanded={more}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Lainnya")}</span>Lainnya</button>
+      {more && <div className="moreMenu" role="menu">{extra.map(([h, l, c]) => (
+        <Link key={"m" + h} href={pathMode ? prefix + h : h} className="mItem" onClick={() => setMore(false)}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span>{l}</Link>))}
+        <button className="mItem" onClick={logout}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span>Keluar</button>
+      </div>}
+    </>}
+  </nav>);
 }
