@@ -93,3 +93,4 @@ h1{font-size:20px;margin-bottom:14px}.card{padding:16px;border-radius:16px}.stat
 
 
 
+.cashgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0}.cashgrid .btn{height:40px;padding:0 6px;font-size:13px;border-radius:12px}
