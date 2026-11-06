@@ -28,8 +28,6 @@ export const POST = (req: Request) => handle(async () => {
     const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT" } });
     return reply(r, "Sudah Absen Datang", "Absen masuk tercatat");
   }
-  if (now.getTime() - (rec.checkOutAt ?? rec.checkInAt).getTime() < 5 * 60_000)
-    return reply(rec, rec.checkOutAt ? "Sudah Absen Pulang" : "Sudah Absen Datang", "Tap ganda diabaikan");
   if (rec.checkOutAt) return reply(rec, "Sudah Absen Pulang", "Sudah absen keluar hari ini");
   const r = await prisma.attendanceRecord.update({ where: { id: rec.id }, data: { checkOutAt: now } });
   return reply(r, "Sudah Absen Pulang", "Absen keluar tercatat");
