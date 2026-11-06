@@ -1,5 +1,6 @@
 *{box-sizing:border-box}body{margin:0;background:#F0F4F9;color:#202124;font:14px/1.4 Inter,Roboto,Arial,sans-serif}
-.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}.side{padding:16px;margin:16px 0 16px 16px;background:#fff;border:1px solid #DADCE0;border-radius:16px;box-shadow:0 4px 12px rgba(60,64,67,.08)}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}.side{padding:16px 0 16px 16px;display:flex;flex-direction:column;gap:12px}
+.sidecard{background:#fff;border:1px solid #DADCE0;border-radius:16px;box-shadow:0 4px 12px rgba(60,64,67,.08);padding:16px}
 .brand{display:flex;align-items:center;justify-content:center;gap:10px;padding:4px 12px 6px;font-size:20px;font-weight:600}
 .logo{width:34px;height:34px;border-radius:12px;background:#1A73E8;color:#fff;display:grid;place-items:center;font-weight:700}
 .portal{margin:0 12px 14px;font-size:12px;color:#5F6368}

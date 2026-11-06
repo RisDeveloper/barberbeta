@@ -3,5 +3,5 @@ const items: [string, string, string][] = [["/", "Dasbor", "#C2E7FF"], ["/attend
 export default async function Shell({ children }: { children: ReactNode }) {
   const u = await guard("EMPLOYEE"); const b = await prisma.branch.findUnique({ where: { id: u.branchId } });
   return (<div className="app"><aside className="side"><div className="brand"><span className="logo">B</span>BarberStory</div>
-    <div className="portal">Karyawan · {b?.name}</div><PortalNav items={items} prefix="/employee" /></aside><main className="main">{children}</main></div>);
+    <div className="sidecard"><div className="portal">Karyawan · {b?.name}</div><PortalNav items={items} prefix="/employee" /></div></aside><main className="main">{children}</main></div>);
 }

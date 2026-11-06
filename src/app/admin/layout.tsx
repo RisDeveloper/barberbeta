@@ -4,5 +4,5 @@ const items: [string, string, string][] = [["/", "Ringkasan", "#C2E7FF"], ["/ana
 export default async function Shell({ children }: { children: ReactNode }) {
   const { b } = await ctx();
   return (<div className="app"><aside className="side"><div className="brand"><span className="logo">B</span>BarberStory</div>
-    <div className="portal">Admin · {b.name}</div><PortalNav items={items} prefix="/admin" /></aside><main className="main">{children}</main></div>);
+    <div className="sidecard"><div className="portal">Admin · {b.name}</div><PortalNav items={items} prefix="/admin" /></div></aside><main className="main">{children}</main></div>);
 }
