@@ -8,7 +8,7 @@
 .nav a:hover,.nav button:hover{background:#F1F3F4}
 .nav a.on{background:#E8F0FE;border-color:#D0E2FF;color:#1A73E8}
 .dot{width:24px;height:24px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:inherit;background:transparent!important}
-.dot svg{width:24px;height:24px}.main{padding:20px 28px 28px 16px;min-width:0}
+.dot svg{width:24px;height:24px}.main{padding:28px 24px 32px;min-width:0}
 h1{margin:0 0 18px;font-size:24px;font-weight:500}.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
 .grid{display:grid;gap:16px}.stat small{color:#5F6368;display:block;margin-bottom:6px}.stat b{font-size:24px;font-weight:600}
 .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500}.ok{background:#C4EED0;color:#0D652D}.late{background:#FEF3C7;color:#7A4F00}.bad{background:#FCE8E6;color:#A50E0E}.mute{background:#F1F3F4;color:#5F6368}
@@ -65,7 +65,7 @@ a{color:#1A73E8}
 .app{grid-template-columns:96px minmax(0,1fr)}.side{padding:12px}
 .brand{font-size:0;justify-content:center;padding:4px 0 14px}.portal{display:none}
 .nav a,.nav button{font-size:0;gap:0;justify-content:center;padding:8px;border-radius:8px}
-.main{padding:20px 20px 28px 8px}}
+.main{padding:28px 20px 28px}}
 @media(max-width:760px){
 .app{grid-template-columns:minmax(0,1fr)}.brand,.portal{display:none}
 .side{position:fixed;left:0;right:0;bottom:0;z-index:10;background:#fff;border-top:1px solid #DADCE0;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px))}
