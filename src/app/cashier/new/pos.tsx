@@ -1,4 +1,5 @@
 "use client";
+import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
 function buildQris(staticQris: string, amount: number) {
@@ -43,6 +44,7 @@ export default function POS() {
   const [disc, setDisc] = useState(0), [cash, setCash] = useState(0), [cust, setCust] = useState("");
   const [pay, setPay] = useState<"cash" | "qris">("cash");
   const cashRef = useRef<HTMLInputElement>(null);
+  const [qrDataUrl, setQrDataUrl] = useState("");
   const qrisStatic = process.env.NEXT_PUBLIC_QRIS_STATIC ?? "";
   const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number } | null>(null);
   const key = useRef<string>();
@@ -50,6 +52,8 @@ export default function POS() {
   useEffect(load, []);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
+  const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
+  useEffect(() => { if (qrisPayload) QRCode.toDataURL(qrisPayload, { width: 220 }).then(setQrDataUrl); else setQrDataUrl(""); }, [qrisPayload]);
   const shown = artists.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (!onlyAvail || a.available));
   useEffect(() => { if (pay === "qris") setCash(total); }, [pay, total]);
   async function confirm() {
@@ -101,7 +105,7 @@ export default function POS() {
       {pay === "qris" && (<div style={{ textAlign: "center", margin: "8px 0 12px" }}>
         {!qrisStatic && <div className="err">Set NEXT_PUBLIC_QRIS_STATIC di .env untuk QRIS dinamis.</div>}
         {qrisStatic && svc && (<>
-          <img src={"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=" + encodeURIComponent(buildQris(qrisStatic, total))} alt="QRIS" />
+          {qrDataUrl ? <img src={qrDataUrl} alt="QRIS" /> : <div className="portal">Membuat QR…</div>}
           <div className="portal" style={{ marginTop: 8 }}>Scan QRIS untuk bayar {rp(total)}</div>
         </>)}
       </div>)}
