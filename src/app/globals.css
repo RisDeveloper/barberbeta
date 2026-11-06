@@ -1,14 +1,16 @@
 *{box-sizing:border-box}body{margin:0;background:#F0F4F9;color:#202124;font:14px/1.4 Inter,Roboto,Arial,sans-serif}
-.app{display:grid;grid-template-columns:80px 1fr;min-height:100vh}.side{padding:12px 8px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.app{display:grid;grid-template-columns:80px 1fr;min-height:100vh}.side{padding:12px 8px;display:flex;flex-direction:column;gap:8px;align-items:center;background:#1A73E8}
 .sidecard{background:#fff;border:1px solid #DADCE0;border-radius:16px;box-shadow:0 4px 12px rgba(60,64,67,.08);padding:16px}
 .brand{display:flex;align-items:center;justify-content:center;padding:4px 0 10px;font-size:0}.brand .logo{font-size:16px}
 .logo{width:34px;height:34px;border-radius:12px;background:#1A73E8;color:#fff;display:grid;place-items:center;font-weight:700}
 .portal{display:none}
-.nav a,.nav button{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px;border-radius:8px;color:#202124;text-decoration:none;background:#fff;border:1px solid #DADCE0;width:100%;font:600 0 Inter,sans-serif;cursor:pointer}
+.nav a,.nav button{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px;border-radius:8px;color:#fff;text-decoration:none;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);width:100%;font:600 0 Inter,sans-serif;cursor:pointer}
+.nav a:hover,.nav button:hover{background:rgba(255,255,255,.25)}
+.nav a.on{background:#fff;color:#1A73E8}
 .nav a:hover,.nav button:hover{background:#E8F0FE}
 .nav a.on{background:#1A73E8;color:#fff}
 .nav a:hover,.nav button:hover{background:#E4EAF3}.nav a.on{background:#C2E7FF;font-weight:600}
-.dot{width:32px;height:32px;border-radius:8px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#202124;background:#F1F3F4}
+.dot{width:32px;height:32px;border-radius:8px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:#1A73E8;background:rgba(255,255,255,.9)}
 .nav a.on .dot{color:#fff;background:rgba(255,255,255,.2)}.main{padding:20px 28px 28px 12px;min-width:0}
 h1{margin:0 0 18px;font-size:24px;font-weight:500}.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
 .grid{display:grid;gap:16px}.stat small{color:#5F6368;display:block;margin-bottom:6px}.stat b{font-size:24px;font-weight:600}
