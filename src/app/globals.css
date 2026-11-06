@@ -94,3 +94,14 @@ h1{font-size:20px;margin-bottom:14px}.card{padding:16px;border-radius:16px}.stat
 
 
 .cashgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0}.cashgrid .btn{height:40px;padding:0 6px;font-size:13px;border-radius:12px}
+
+/* Employee mobile nav: floating pill */
+@media(max-width:760px){
+.emp .side{left:50%;right:auto;bottom:12px;margin:0;transform:translateX(-50%);width:calc(100% - 24px);max-width:360px;height:60px;padding:0 6px;background:#fff;border:1px solid #E8EAED;border-radius:40px;box-shadow:0 10px 25px rgba(0,0,0,.12);flex-direction:row;align-items:center;justify-content:center}
+.emp .sidecard{background:transparent;border:0;box-shadow:none;padding:0;border-radius:0;flex:1}
+.emp .nav{flex-direction:row;width:100%;gap:0;overflow:visible}
+.emp .nav a,.emp .nav button{flex:1 1 0;min-width:0;width:auto;height:48px;min-height:48px;padding:0;border:0;background:transparent;border-radius:50%;font-size:0;color:#3C4043;transition:.2s;flex-direction:row;gap:0}
+.emp .nav a:hover,.emp .nav button:hover{background:transparent;color:#EB28B0;transform:translateY(-2px)}
+.emp .nav a.on{background:transparent;color:#EB28B0}
+.emp .main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+}
