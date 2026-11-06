@@ -60,7 +60,8 @@ a{color:#1A73E8}
 .tg{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
 .pos{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}.pos>*{min-width:0}
 .nav{display:flex;flex-direction:column;gap:8px;scrollbar-width:none}.nav::-webkit-scrollbar{display:none}
-@media(max-width:1024px){.pos{grid-template-columns:minmax(0,1fr)}th,td{white-space:nowrap}}
+@media(max-width:1024px){th,td{white-space:nowrap}}
+@media(max-width:900px){.pos{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:761px) and (max-width:1024px){
 .app{grid-template-columns:96px minmax(0,1fr)}.side{padding:12px}
 .brand{font-size:0;justify-content:center;padding:4px 0 14px}.portal{display:none}
