@@ -8,8 +8,8 @@
 .nav a:hover,.nav button:hover{background:#F1F3F4}
 .nav a.on{background:#E8F0FE;border-color:#D0E2FF;color:#1A73E8}
 .dot{width:24px;height:24px;flex:none;display:inline-flex;align-items:center;justify-content:center;color:inherit;background:transparent!important}
-.dot svg{width:24px;height:24px}.main{padding:56px 24px 32px;min-width:0}
-h1{margin:0 0 18px;font-size:24px;font-weight:500}.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
+.dot svg{width:24px;height:24px}.main{padding:43px 24px 32px;min-width:0}
+h1{margin:0 0 31px;font-size:24px;font-weight:500}.card{background:#fff;border:1px solid #DADCE0;border-radius:20px;padding:20px}.card h2{margin:0 0 14px;font-size:16px;font-weight:600}
 .grid{display:grid;gap:16px}.stat small{color:#5F6368;display:block;margin-bottom:6px}.stat b{font-size:24px;font-weight:600}
 .pill{display:inline-block;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500}.ok{background:#C4EED0;color:#0D652D}.late{background:#FEF3C7;color:#7A4F00}.bad{background:#FCE8E6;color:#A50E0E}.mute{background:#F1F3F4;color:#5F6368}
 table{width:100%;border-collapse:collapse}th{text-align:left;color:#5F6368;font-weight:500;font-size:12px;padding:8px 10px;border-bottom:1px solid #DADCE0}td{padding:10px;border-bottom:1px solid #F1F3F4}
