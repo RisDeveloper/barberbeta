@@ -24,7 +24,7 @@ const SHORT: Record<string, string> = {
   "Semua Transaksi": "Transaksi", "Manajemen Karyawan": "Karyawan", "Absensi Karyawan": "Absensi",
   "Manajemen Komisi": "Komisi", "Pendapatan & Pengeluaran": "Keuangan", "Laporan Keuangan": "Laporan",
   "Pengaturan Sistem": "Setelan", "Transaksi Baru": "Transaksi", "Riwayat Transaksi": "Riwayat",
-  "Absensi Saya": "Absensi", "Pendapatan Saya": "Komisi", "Riwayat Layanan": "Riwayat", "Profil Saya": "Profil",
+  "Absensi Saya": "Absensi", "Pendapatan Saya": "Komisi", "Riwayat Layanan": "Riwayat", "Profil Saya": "Profil", "Pengeluaran": "Biaya",
 };
 const short = (l: string) => SHORT[l] ?? l.split(" ")[0];
 export default function PortalNav({ items, prefix }: { items: [string, string, string][]; prefix: string }) {

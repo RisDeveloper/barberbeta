@@ -7,6 +7,26 @@ import { HttpError } from "@/lib/session";
 
 const ReqSchema = z.object({ id: z.string(), reason: z.string().trim().min(3), kind: z.enum(["CANCELLED", "REFUNDED"]) });
 
+const ExpenseSchema = z.object({ description: z.string().trim().min(3), category: z.string().trim().min(1), amountRp: z.coerce.number().int().min(1) });
+export async function addExpense(fd: FormData) {
+  const u = await guard("CASHIER");
+  const d = ExpenseSchema.parse(Object.fromEntries(fd));
+  const e = await prisma.expenseRecord.create({ data: { date: new Date(), category: d.category, description: d.description, amountRp: d.amountRp, branchId: u.branchId, paymentMethod: "Tunai", createdById: u.id } });
+  await prisma.auditLog.create({ data: { actorId: u.id, action: "EXPENSE_CREATE", entity: "ExpenseRecord", entityId: e.id, meta: { amountRp: d.amountRp, category: d.category } } });
+  revalidatePath("/cashier/expenses"); revalidatePath("/cashier");
+}
+
+const KasbonSchema = z.object({ userId: z.string().min(1), amountRp: z.coerce.number().int().min(1) });
+export async function addKasbon(fd: FormData) {
+  const u = await guard("CASHIER");
+  const d = KasbonSchema.parse(Object.fromEntries(fd));
+  const emp = await prisma.user.findFirst({ where: { id: d.userId, branchId: u.branchId, deletedAt: null, active: true, role: { not: "OWNER" } } });
+  if (!emp) throw new HttpError(400, "Karyawan tidak ditemukan di cabang ini");
+  const e = await prisma.expenseRecord.create({ data: { date: new Date(), category: "Kasbon", description: `Kasbon - ${emp.name}`, amountRp: d.amountRp, branchId: u.branchId, paymentMethod: "Tunai", createdById: u.id } });
+  await prisma.auditLog.create({ data: { actorId: u.id, action: "KASBON_CREATE", entity: "ExpenseRecord", entityId: e.id, meta: { userId: emp.id, name: emp.name, amountRp: d.amountRp } } });
+  revalidatePath("/cashier/expenses"); revalidatePath("/cashier");
+}
+
 export async function requestCancel(fd: FormData) {
   const u = await guard("CASHIER");
   const d = ReqSchema.parse({ id: fd.get("id"), reason: fd.get("reason"), kind: fd.get("kind") });
