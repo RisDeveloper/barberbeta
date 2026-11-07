@@ -20,7 +20,7 @@ function icon(l: string, prefix = "") {
   return <svg {...S}><circle cx="12" cy="12" r="8" /></svg>;
 }
 const SHORT: Record<string, string> = {
-  "Ringkasan Bisnis": "Ringkasan", "Manajemen Cabang": "Cabang", "Analisis Pendapatan": "Analisis",
+  "Ringkasan Bisnis": "Dashboard", "Manajemen Cabang": "Cabang", "Analisis Pendapatan": "Analisis",
   "Semua Transaksi": "Transaksi", "Manajemen Karyawan": "Karyawan", "Absensi Karyawan": "Absensi",
   "Manajemen Komisi": "Komisi", "Pendapatan & Pengeluaran": "Keuangan", "Laporan Keuangan": "Laporan",
   "Pengaturan Sistem": "Setelan", "Transaksi Baru": "Transaksi", "Riwayat Transaksi": "Riwayat",
