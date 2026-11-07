@@ -17,9 +17,10 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {P.map(([k, l]) => <button key={k} name="p" value={k} className={"btn s" + (p === k ? "" : " t")}>{l}</button>)}
       </div>
-      {p === "date" && <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginTop: 12 }}>
-        <div><label htmlFor="d">Tanggal</label><input id="d" name="d" type="date" className="field" style={{ margin: 0, width: 180 }} defaultValue={dstr} /></div>
-        <button name="p" value="date" className="btn s">Terapkan</button>
+      {p === "date" && <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
+        <label htmlFor="d" style={{ fontSize: 13 }}>Tanggal</label>
+        <input id="d" name="d" type="date" className="field" style={{ margin: 0, width: 170, height: 40 }} defaultValue={dstr} />
+        <button name="p" value="date" className="btn s" style={{ height: 40 }}>Terapkan</button>
       </div>}
     </form>
     <div className="grid stats">
