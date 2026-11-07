@@ -5,8 +5,8 @@ type E = { id: string; name: string; email: string; state: string; inAt: string 
 type R = { name: string; branch: string; state: string; notice: string; checkInAt: string; checkOutAt: string | null };
 const clean = (n: string) => n.replace(/^\[.*?\]\s*/, "").trim() || n;
 const initial = (n: string) => (clean(n)[0] ?? "B").toUpperCase();
-const hm = (s: string | null) => (s ? new Date(s).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }) : "—");
-export default function AttendanceCards({ employees }: { employees: E[] }) {
+export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { employees: E[]; tz?: string }) {
+  const hm = (s: string | null) => (s ? new Date(s).toLocaleTimeString("id-ID", { timeZone: tz, hour: "2-digit", minute: "2-digit" }) : "—");
   const router = useRouter();
   const [sel, setSel] = useState<E | null>(null), [pin, setPin] = useState(""), [busy, setBusy] = useState(false);
   const [err, setErr] = useState(""), [res, setRes] = useState<R | null>(null);

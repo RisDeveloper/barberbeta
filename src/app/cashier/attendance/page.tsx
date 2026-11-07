@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { guard } from "@/lib/guard";
 import { prisma } from "@/lib/db";
 import { todayLocal } from "@/lib/time";
@@ -12,7 +13,8 @@ export default async function Attendance() {
     prisma.attendanceRecord.findMany({ where: { branchId: u.branchId, workDate: today }, select: { userId: true, status: true, checkInAt: true, checkOutAt: true } }),
   ]);
   const m = new Map(recs.map((r) => [r.userId, r]));
-  return (<><h1>Absensi Karyawan</h1><AttendanceCards employees={employees.map((e) => {
+  const dateLabel = new Date().toLocaleDateString("id-ID", { timeZone: b.timezone, weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  return (<><h1>Absensi Karyawan</h1><div className="portal" style={{ margin: "0 0 12px" }}>Hari ini: {dateLabel} (WIB) · reset otomatis jam 00:00 WIB</div><AttendanceCards tz={b.timezone} employees={employees.map((e) => {
     const r = m.get(e.id);
     return { ...e, state: !r ? "" : r.checkOutAt ? "Selesai" : r.status === "LATE" ? "Terlambat" : "Hadir", inAt: r?.checkInAt.toISOString() ?? null, outAt: r?.checkOutAt?.toISOString() ?? null };
   })} /></>);
