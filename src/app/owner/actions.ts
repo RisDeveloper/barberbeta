@@ -1,6 +1,6 @@
 "use server";
-import { z } from "zod"; import bcrypt from "bcryptjs"; import { randomBytes } from "crypto"; import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/db"; import { requireUser, sha256, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
+import { z } from "zod"; import bcrypt from "bcryptjs"; import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/db"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
 const me = () => requireUser(["OWNER"]);
 const os = z.string().transform((v) => v.trim() || undefined).optional();
 const int = z.coerce.number().int().min(0), pos = z.coerce.number().int().min(1);
@@ -35,14 +35,6 @@ export async function updateUser(fd: FormData) {
 export async function resetPin(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);
   await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); done();
-}
-export async function assignCard(fd: FormData) {
-  const o = await me(), d = get(z.object({ userId: z.string(), cardUid: z.string().min(4).max(64) }), fd), tokenHash = sha256(process.env.CARD_PEPPER + d.cardUid);
-  await prisma.employeeCard.upsert({ where: { userId: d.userId }, update: { tokenHash, active: true }, create: { userId: d.userId, tokenHash } }); await audit(o.id, "CARD_ASSIGN", "User", d.userId); done();
-}
-export async function createDevice(_: { key?: string }, fd: FormData) {
-  const o = await me(), d = get(z.object({ branchId: z.string() }), fd), key = randomBytes(24).toString("base64url");
-  const dev = await prisma.device.create({ data: { branchId: d.branchId, keyHash: sha256(key) } }); await audit(o.id, "DEVICE_CREATE", "Device", dev.id); return { key };
 }
 export async function saveService(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, description: os, branchId: os }), fd);

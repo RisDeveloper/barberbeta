@@ -19,17 +19,25 @@ function icon(l: string, prefix = "") {
   if (/lainnya/i.test(l)) return <svg {...S}><path d="M4 6h16M4 12h16M4 18h16" /></svg>;
   return <svg {...S}><circle cx="12" cy="12" r="8" /></svg>;
 }
+const SHORT: Record<string, string> = {
+  "Ringkasan Bisnis": "Ringkasan", "Manajemen Cabang": "Cabang", "Analisis Pendapatan": "Analisis",
+  "Semua Transaksi": "Transaksi", "Manajemen Karyawan": "Karyawan", "Absensi Karyawan": "Absensi",
+  "Manajemen Komisi": "Komisi", "Pendapatan & Pengeluaran": "Keuangan", "Laporan Keuangan": "Laporan",
+  "Pengaturan Sistem": "Setelan", "Transaksi Baru": "Transaksi", "Riwayat Transaksi": "Riwayat",
+  "Absensi Saya": "Absensi", "Pendapatan Saya": "Komisi", "Riwayat Layanan": "Riwayat", "Profil Saya": "Profil",
+};
+const short = (l: string) => SHORT[l] ?? l.split(" ")[0];
 export default function PortalNav({ items, prefix }: { items: [string, string, string][]; prefix: string }) {
   const raw = usePathname() ?? "/", pathMode = raw === prefix || raw.startsWith(prefix + "/"), p = (pathMode ? raw.slice(prefix.length) : raw) || "/";
   const [more, setMore] = useState(false);
   async function logout() { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = process.env.NEXT_PUBLIC_AUTH_URL ?? "/"; }
   const over = items.length + 1 > 6, extra = over ? items.slice(5) : [];
   const link = ([h, l, c]: [string, string, string], i: number) => (
-    <Link key={h} href={pathMode ? prefix + h : h} title={l} onClick={() => setMore(false)} className={(p === h ? "on " : "") + (i >= 5 ? "extra" : "")}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span>{l}</Link>);
+    <Link key={h} href={pathMode ? prefix + h : h} title={l} onClick={() => setMore(false)} className={(p === h ? "on " : "") + (i >= 5 ? "extra" : "")}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span><span className="nlbl">{short(l)}</span></Link>);
   return (<nav className="nav">{items.map(link)}
-    <button onClick={logout} title="Keluar" className={"logoutBtn" + (over ? " extra" : "")}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span>Keluar</button>
+    <button onClick={logout} title="Keluar" className={"logoutBtn" + (over ? " extra" : "")}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span><span className="nlbl">Keluar</span></button>
     {over && <>
-      <button className="moreBtn" onClick={() => setMore((v) => !v)} aria-label="Menu lainnya" aria-expanded={more}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Lainnya")}</span>Lainnya</button>
+      <button className="moreBtn" onClick={() => setMore((v) => !v)} aria-label="Menu lainnya" aria-expanded={more}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Lainnya")}</span><span className="nlbl">Lainnya</span></button>
       {more && <div className="moreMenu" role="menu">{extra.map(([h, l, c]) => (
         <Link key={"m" + h} href={pathMode ? prefix + h : h} className="mItem" onClick={() => setMore(false)}><span className="dot" style={{ background: c }}>{icon(l, prefix)}</span>{l}</Link>))}
         <button className="mItem" onClick={logout}><span className="dot" style={{ background: "#F1F3F4" }}>{icon("Keluar")}</span>Keluar</button>

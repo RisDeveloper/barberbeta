@@ -3,7 +3,6 @@ const PORTALS: Record<string, string> = { auth: "auth", kasir: "cashier", admin:
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return NextResponse.next();
-  if (pathname.startsWith("/kiosk")) return NextResponse.next(); // attendance kiosk: uses a device key, not a user session
   const portal = PORTALS[(req.headers.get("host") ?? "").split(".")[0]]; if (!portal) return NextResponse.next();
   // Cheap gate only; real role + branch validation happens server-side in every layout/API via requireUser().
   if (portal !== "auth" && !req.cookies.has("bos_session")) return NextResponse.redirect(process.env.AUTH_URL ?? "/");
