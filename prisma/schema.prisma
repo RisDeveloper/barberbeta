@@ -151,6 +151,7 @@ model Transaction {
   totalRp        Int
   cashReceivedRp Int
   changeRp       Int
+  paymentMethod  String   @default("Tunai")
   customerName   String?
   status         TxStatus    @default(COMPLETED)
   cancelRequested Boolean   @default(false)

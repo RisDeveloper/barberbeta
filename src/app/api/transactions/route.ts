@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { z } from "zod"; import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db"; import { requireUser, branchScope, handle, HttpError } from "@/lib/session"; import { commissionFor } from "@/lib/commission";
 const Body = z.object({ serviceId: z.string(), artistId: z.string(), discountRp: z.number().int().min(0).default(0),
-  cashReceivedRp: z.number().int().min(0), customerName: z.string().max(80).optional(), idempotencyKey: z.string().min(8).max(64) });
+  cashReceivedRp: z.number().int().min(0), paymentMethod: z.enum(["Tunai", "QRIS"]).default("Tunai"), customerName: z.string().max(80).optional(), idempotencyKey: z.string().min(8).max(64) });
 
 export const POST = (req: Request) => handle(async () => {
   const user = await requireUser(["CASHIER"]); const branchId = branchScope(user)!; // from session, never from the client
@@ -20,7 +20,7 @@ export const POST = (req: Request) => handle(async () => {
     const now = new Date();
     const created = await db.transaction.create({ data: { publicId: `TRX-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${randomBytes(3).toString("hex").toUpperCase()}`,
       idempotencyKey: b.idempotencyKey, branchId, cashierId: user.id, artistId: artist.id, serviceId: service.id, serviceName: service.name,
-      priceRp: service.priceRp, discountRp: b.discountRp, totalRp, cashReceivedRp: b.cashReceivedRp, changeRp: b.cashReceivedRp - totalRp,
+      priceRp: service.priceRp, discountRp: b.discountRp, totalRp, cashReceivedRp: b.cashReceivedRp, changeRp: b.cashReceivedRp - totalRp, paymentMethod: b.paymentMethod,
       customerName: b.customerName, status: "COMPLETED" } });
     for (const [uid, role] of [[artist.id, "EMPLOYEE"], [user.id, "CASHIER"]] as const) {
       const c = await commissionFor(db, uid, role, branchId, totalRp, now);

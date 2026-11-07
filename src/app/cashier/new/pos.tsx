@@ -59,7 +59,7 @@ export default function POS() {
   async function confirm() {
     setBusy(true); setErr(""); key.current ??= crypto.randomUUID(); // same key on retry = no double charge
     const r = await fetch("/api/transactions", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ serviceId: sid, artistId: aid, discountRp: disc, cashReceivedRp: cash, customerName: cust || undefined, idempotencyKey: key.current }) });
+      body: JSON.stringify({ serviceId: sid, artistId: aid, discountRp: disc, cashReceivedRp: cash, paymentMethod: pay === "qris" ? "QRIS" : "Tunai", customerName: cust || undefined, idempotencyKey: key.current }) });
     const d = await r.json(); setBusy(false);
     if (!r.ok) return setErr(d.error ?? "Gagal");
     key.current = undefined; setDone(d);
