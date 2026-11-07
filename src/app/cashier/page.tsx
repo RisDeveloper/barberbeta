@@ -18,7 +18,9 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
     prisma.expenseRecord.aggregate({ where: { ...rec, category: "Kasbon" }, _sum: { amountRp: true } })]);
   const revenue = a._sum.totalRp ?? 0, cash = ca._sum.totalRp ?? 0, qris = qa._sum.totalRp ?? 0, expense = ex._sum.amountRp ?? 0, kasbon = kb._sum.amountRp ?? 0;
   const label = p === "date" ? `hari ${new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, weekday: "long" }).format(gte).toLowerCase()}, ${fmt(gte)}` : P.find(([k]) => k === p)![1].toLowerCase();
-  return (<><h1>Dasbor</h1>
+  return (<><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 16 }}>
+    <h1 style={{ margin: 0 }}>Dasbor</h1><span style={{ fontSize: 13, color: "#5F6368" }}>{b.name}</span>
+  </div>
     <form style={{ marginBottom: 16 }}>
       <div style={{ display: "inline-flex", flexDirection: "column", maxWidth: "100%" }}>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -38,6 +40,5 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
     <div className="card stat"><small>Pendapatan bersih {label}</small><b>{rp(revenue - expense - kasbon)}</b></div>
     <div className="card stat"><small>Pendapatan tunai {label}</small><b>{rp(cash)}</b></div>
     <div className="card stat"><small>Pendapatan QRIS {label}</small><b>{rp(qris)}</b></div>
-    <div className="card stat"><small>Transaksi {label}</small><b>{a._count}</b></div>
-    <div className="card stat"><small>Cabang</small><b>{b.name}</b></div></div></>);
+    <div className="card stat"><small>Transaksi {label}</small><b>{a._count}</b></div></div></>);
 }
