@@ -10,7 +10,11 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
   const gte = p === "week" ? startOfLocalWeek(b.timezone) : p === "month" ? startOfLocalMonth(b.timezone) : p === "date" ? dateStart : today;
   const lt = p === "date" ? new Date(+gte + 86400000) : undefined;
   const where = { branchId: u.branchId, cashierId: u.id, status: "COMPLETED" as const, createdAt: lt ? { gte, lt } : { gte } };
-  const a = await prisma.transaction.aggregate({ where, _sum: { totalRp: true }, _count: true });
+  const rec = { branchId: u.branchId, voidedAt: null, date: { gte, lt: lt ?? new Date(+today + 86400000) } };
+  const [a, ex, kb] = await Promise.all([prisma.transaction.aggregate({ where, _sum: { totalRp: true }, _count: true }),
+    prisma.expenseRecord.aggregate({ where: { ...rec, category: { not: "Kasbon" } }, _sum: { amountRp: true } }),
+    prisma.expenseRecord.aggregate({ where: { ...rec, category: "Kasbon" }, _sum: { amountRp: true } })]);
+  const revenue = a._sum.totalRp ?? 0, expense = ex._sum.amountRp ?? 0, kasbon = kb._sum.amountRp ?? 0;
   const label = p === "date" ? `hari ${new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, weekday: "long" }).format(gte).toLowerCase()}, ${fmt(gte)}` : P.find(([k]) => k === p)![1].toLowerCase();
   return (<><h1>Dasbor</h1>
     <form style={{ marginBottom: 16 }}>
@@ -26,7 +30,10 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
       </div>
     </form>
     <div className="grid stats">
-    <div className="card stat"><small>Pendapatan {label}</small><b>{rp(a._sum.totalRp ?? 0)}</b></div>
+    <div className="card stat"><small>Pendapatan {label}</small><b>{rp(revenue)}</b></div>
+    <div className="card stat"><small>Pengeluaran {label}</small><b>{rp(expense)}</b></div>
+    <div className="card stat"><small>Kasbon {label}</small><b>{rp(kasbon)}</b></div>
+    <div className="card stat"><small>Pendapatan bersih {label}</small><b>{rp(revenue - expense - kasbon)}</b></div>
     <div className="card stat"><small>Transaksi {label}</small><b>{a._count}</b></div>
     <div className="card stat"><small>Cabang</small><b>{b.name}</b></div></div></>);
 }
