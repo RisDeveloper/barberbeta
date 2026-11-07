@@ -14,14 +14,16 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
   const label = p === "date" ? `hari ${new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, weekday: "long" }).format(gte).toLowerCase()}, ${fmt(gte)}` : P.find(([k]) => k === p)![1].toLowerCase();
   return (<><h1>Dasbor</h1>
     <form style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {P.map(([k, l]) => <button key={k} name="p" value={k} className={"btn s" + (p === k ? "" : " t")}>{l}</button>)}
+      <div style={{ display: "inline-flex", flexDirection: "column", maxWidth: "100%" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {P.map(([k, l]) => <button key={k} name="p" value={k} className={"btn s" + (p === k ? "" : " t")}>{l}</button>)}
+        </div>
+        {p === "date" && <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+          <label htmlFor="d" style={{ fontSize: 13 }}>Tanggal</label>
+          <input id="d" name="d" type="date" className="field" style={{ margin: 0, height: 40, width: 170, flex: "0 1 170px", minWidth: 110 }} defaultValue={dstr} />
+          <button name="p" value="date" className="btn s" style={{ height: 40, flex: "1 0 auto" }}>Terapkan</button>
+        </div>}
       </div>
-      {p === "date" && <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginTop: 12 }}>
-        <label htmlFor="d" style={{ fontSize: 13 }}>Tanggal</label>
-        <input id="d" name="d" type="date" className="field" style={{ margin: 0, width: 170, height: 40 }} defaultValue={dstr} />
-        <button name="p" value="date" className="btn s" style={{ height: 40 }}>Terapkan</button>
-      </div>}
     </form>
     <div className="grid stats">
     <div className="card stat"><small>Pendapatan {label}</small><b>{rp(a._sum.totalRp ?? 0)}</b></div>
