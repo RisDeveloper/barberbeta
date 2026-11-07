@@ -1,4 +1,6 @@
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 import { guard } from "@/lib/guard";
 import { prisma } from "@/lib/db";
 import { todayLocal } from "@/lib/time";
@@ -14,7 +16,7 @@ export default async function Attendance() {
   ]);
   const m = new Map(recs.map((r) => [r.userId, r]));
   const dateLabel = new Date().toLocaleDateString("id-ID", { timeZone: b.timezone, weekday: "long", day: "numeric", month: "long", year: "numeric" });
-  return (<><h1>Absensi Karyawan</h1><div className="portal" style={{ margin: "0 0 12px" }}>Hari ini: {dateLabel} (WIB) · reset otomatis jam 00:00 WIB</div><AttendanceCards tz={b.timezone} employees={employees.map((e) => {
+  return (<><h1>Absensi Karyawan</h1><div className="portal" style={{ margin: "0 0 12px" }}>Hari ini: {dateLabel} (WIB) - reset otomatis jam 00:00 WIB</div><AttendanceCards tz={b.timezone} employees={employees.map((e) => {
     const r = m.get(e.id);
     return { ...e, state: !r ? "" : r.checkOutAt ? "Selesai" : r.status === "LATE" ? "Terlambat" : "Hadir", inAt: r?.checkInAt.toISOString() ?? null, outAt: r?.checkOutAt?.toISOString() ?? null };
   })} /></>);
