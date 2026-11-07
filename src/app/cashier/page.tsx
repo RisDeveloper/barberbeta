@@ -6,7 +6,7 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
   const p = P.find(([k]) => k === sp.p)?.[0] ?? "day", today = startOfLocalDay(b.timezone);
   const todayStr = new Intl.DateTimeFormat("en-CA", { timeZone: b.timezone, year: "numeric", month: "2-digit", day: "2-digit" }).format(today);
   const dstr = validDate(sp.d) ?? todayStr, dateStart = dayStart(dstr, b.timezone);
-  const fmt = (d: Date) => new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, day: "2-digit", month: "2-digit", year: "2-digit" }).format(d);
+  const fmt = (d: Date) => new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
   const gte = p === "week" ? startOfLocalWeek(b.timezone) : p === "month" ? startOfLocalMonth(b.timezone) : p === "date" ? dateStart : today;
   const lt = p === "date" ? new Date(+gte + 86400000) : undefined;
   const where = { branchId: u.branchId, cashierId: u.id, status: "COMPLETED" as const, createdAt: lt ? { gte, lt } : { gte } };
