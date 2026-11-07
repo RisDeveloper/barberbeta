@@ -13,12 +13,14 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
   const a = await prisma.transaction.aggregate({ where, _sum: { totalRp: true }, _count: true });
   const label = p === "date" ? `hari ${new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, weekday: "long" }).format(gte).toLowerCase()}, ${fmt(gte)}` : P.find(([k]) => k === p)![1].toLowerCase();
   return (<><h1>Dasbor</h1>
-    <form style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginBottom: 16 }}>
-      {P.map(([k, l]) => <button key={k} name="p" value={k} className={"btn s" + (p === k ? "" : " t")}>{l}</button>)}
-      {p === "date" && <>
-        <div><label htmlFor="d">Tanggal</label><input id="d" name="d" type="date" className="field" style={{ margin: 0 }} defaultValue={dstr} /></div>
+    <form style={{ marginBottom: 16 }}>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {P.map(([k, l]) => <button key={k} name="p" value={k} className={"btn s" + (p === k ? "" : " t")}>{l}</button>)}
+      </div>
+      {p === "date" && <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "end", marginTop: 12 }}>
+        <div><label htmlFor="d">Tanggal</label><input id="d" name="d" type="date" className="field" style={{ margin: 0, width: 180 }} defaultValue={dstr} /></div>
         <button name="p" value="date" className="btn s">Terapkan</button>
-      </>}
+      </div>}
     </form>
     <div className="grid stats">
     <div className="card stat"><small>Pendapatan {label}</small><b>{rp(a._sum.totalRp ?? 0)}</b></div>
