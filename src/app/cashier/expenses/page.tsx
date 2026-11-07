@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db"; import { guard } from "@/lib/guard"; import { EXPENSE_CATS } from "@/lib/owner"; import { F } from "@/components/F"; import Tbl from "@/components/Tbl"; import { dt, rp } from "@/lib/time"; import { addExpense, addKasbon } from "../actions";
+import { prisma } from "@/lib/db"; import { guard } from "@/lib/guard"; import { EXPENSE_CATS } from "@/lib/owner"; import Tbl from "@/components/Tbl"; import { dt, rp } from "@/lib/time"; import { ExpenseForm, KasbonForm } from "./forms";
 export default async function Expenses() {
   const u = await guard("CASHIER"); const b = await prisma.branch.findUniqueOrThrow({ where: { id: u.branchId } });
   const [emps, recs] = await Promise.all([
@@ -7,17 +7,8 @@ export default async function Expenses() {
   ]);
   return (<><h1>Pengeluaran</h1>
     <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", marginBottom: 16 }}>
-      <div className="card"><h2>Catat pengeluaran</h2><form action={addExpense} className="fr">
-        <F l="Keterangan" n="description" ph="cth: sabun, pewangi" r />
-        <F l="Kategori" n="category" d="Operasional lain" o={EXPENSE_CATS.map((c) => [c, c])} />
-        <F l="Jumlah (Rp)" n="amountRp" t="number" r />
-        <button className="btn s">Simpan</button>
-      </form></div>
-      <div className="card"><h2>Kasbon karyawan</h2><form action={addKasbon} className="fr">
-        <F l="Karyawan" n="userId" o={emps.map((e) => [e.id, e.name])} r />
-        <F l="Jumlah (Rp)" n="amountRp" t="number" r />
-        <button className="btn s">Simpan kasbon</button>
-      </form></div>
+      <div className="card"><h2>Catat pengeluaran</h2><ExpenseForm cats={EXPENSE_CATS} /></div>
+      <div className="card"><h2>Kasbon karyawan</h2><KasbonForm emps={emps.map((e) => [e.id, e.name])} /></div>
     </div>
     <h2>Riwayat pengeluaran & kasbon</h2>
     <Tbl head={["Tanggal", "Kategori", "Keterangan", "Jumlah"]} rows={recs.map((r) => [dt(r.date, b.timezone), r.category, r.description, rp(r.amountRp)])} />
