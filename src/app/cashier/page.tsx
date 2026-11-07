@@ -29,7 +29,7 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
         </div>}
       </div>
     </form>
-    <div className="grid stats">
+    <div className="grid stats three">
     <div className="card stat"><small>Pendapatan {label}</small><b>{rp(revenue)}</b></div>
     <div className="card stat"><small>Pengeluaran {label}</small><b>{rp(expense)}</b></div>
     <div className="card stat"><small>Kasbon {label}</small><b>{rp(kasbon)}</b></div>
