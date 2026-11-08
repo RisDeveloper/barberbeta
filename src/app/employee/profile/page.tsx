@@ -1,10 +1,16 @@
 import { guard } from "@/lib/guard"; import { prisma } from "@/lib/db";
+import { stats } from "@/lib/earnings"; import { startOfLocalMonth, todayLocal, rp } from "@/lib/time";
+import ProfileCard from "@/components/ProfileCard";
 export default async function Profile() {
   const u = await guard("EMPLOYEE"); const b = await prisma.branch.findUniqueOrThrow({ where: { id: u.branchId } });
-  const card = await prisma.employeeCard.findUnique({ where: { userId: u.id } });
-  return (<><h1>Profil Saya</h1><div className="card" style={{ maxWidth: 480 }}>
-    <div className="row"><span>Nama</span>{u.name}</div><div className="row"><span>ID Karyawan</span>{u.id.slice(-8).toUpperCase()}</div>
-    <div className="row"><span>Peran</span>Barber</div><div className="row"><span>Cabang</span>{b.name}</div>
-    <div className="row"><span>Kartu absensi</span>{card?.active ? "Terdaftar" : "Belum terdaftar"}</div>
-    <div className="portal" style={{ margin: "12px 0 0" }}>Peran dan cabang hanya dapat diubah oleh pemilik.</div></div></>);
+  const month = todayLocal(b.timezone).slice(0, 7);
+  const [card, m, served, hadir] = await Promise.all([
+    prisma.employeeCard.findUnique({ where: { userId: u.id } }),
+    stats(u.id, startOfLocalMonth(b.timezone)),
+    prisma.transaction.count({ where: { artistId: u.id, status: "COMPLETED" } }),
+    prisma.attendanceRecord.count({ where: { userId: u.id, workDate: { startsWith: month } } }) ]);
+  return (<><h1>Profil Saya</h1><ProfileCard name={u.name} role="Barber" email={u.email}
+    stats={[["Pelanggan", served], ["Komisi bulan ini", rp(m.earningsRp)], ["Hadir bulan ini", hadir]]}
+    rows={[["ID Karyawan", u.id.slice(-8).toUpperCase()], ["Cabang", b.name], ["Kartu absensi", card?.active ? "Terdaftar" : "Belum terdaftar"]]}
+    note="Peran dan cabang hanya dapat diubah oleh pemilik." /></>);
 }

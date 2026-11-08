@@ -8,7 +8,8 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
   const hm = (s: string | null) => (s ? new Date(s).toLocaleTimeString("id-ID", { timeZone: tz, hour: "2-digit", minute: "2-digit" }) : "—");
   const [sel, setSel] = useState<E | null>(null), [pin, setPin] = useState(""), [busy, setBusy] = useState(false);
   const [err, setErr] = useState(""), [res, setRes] = useState<R | null>(null);
-  const close = () => { setSel(null); setPin(""); setErr(""); setRes(null); };
+  const [overrides, setOverrides] = useState<Record<string, { state: string; inAt: string | null; outAt: string | null }>>({});
+  const close = () => { const hadRes = !!res; setSel(null); setPin(""); setErr(""); setRes(null); if (hadRes) window.location.href = "/cashier/attendance?_=" + Date.now(); };
   useEffect(() => {
     if (!sel) return;
     const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
@@ -20,6 +21,8 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
     const r = await fetch("/api/attendance/cashier", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: sel.email, pin }) });
     const d = await r.json(); setBusy(false);
     if (!r.ok) return setErr(d.error ?? "Gagal");
+    const st = d.status === "LATE" ? "Terlambat" : "Hadir";
+    setOverrides((prev) => ({ ...prev, [sel.id]: { state: st, inAt: d.checkInAt, outAt: null } }));
     setRes(d); setPin("");
   }
   async function doCheckout(emp: E) {
@@ -34,15 +37,19 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
       window.location.href = "/cashier/attendance?_=" + Date.now();
     } catch { setBusy(false); setSel(emp); setErr("Gagal"); }
   }
-  const done = sel?.state === "Selesai", out = !!sel?.state && !done;
+  const done = (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Selesai";
+  const out = !!(overrides[sel?.id ?? ""]?.state ?? sel?.state) && !done;
+  const isCheckedIn = (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Hadir" || (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Terlambat";
   return (<>
-    <div className="attPeople">{employees.map((e) => (
-      <button key={e.id} type="button" className={"attPCard" + (e.state ? " done" : "")} disabled={busy} onClick={() => { if (busy) return; doCheckout(e); }}>
+    <div className="attPeople">{employees.map((e) => {
+      const o = overrides[e.id], state = o?.state ?? e.state, inAt = o?.inAt ?? e.inAt, outAt = o?.outAt ?? e.outAt;
+      return (<button key={e.id} type="button" className={"attPCard" + (state ? " done" : "")} disabled={busy} onClick={() => { if (busy) return; setSel(e); setPin(""); setErr(""); setRes(null); }}>
         <span className="attPAvatar">{initial(e.name)}</span>
         <b className="attPName">{clean(e.name)}</b>
-        {e.inAt && <span className="attPTime">Masuk {hm(e.inAt)}{e.outAt ? " - Pulang " + hm(e.outAt) : ""}</span>}
-        <span className={"pill " + (!e.state ? "mute" : e.state === "Terlambat" ? "late" : "ok")}>{e.state || "Belum absen"}</span>
-      </button>))}</div>
+        {inAt && <span className="attPTime">Masuk {hm(inAt)}{outAt ? " - Pulang " + hm(outAt) : ""}</span>}
+        <span className={"pill " + (!state ? "mute" : state === "Terlambat" ? "late" : "ok")}>{state || "Belum absen"}</span>
+      </button>);
+    })}</div>
     {!employees.length && <div className="card">Belum ada karyawan di cabang ini.</div>}
     {sel && (<div className="attModal" role="dialog" aria-modal="true" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="attModalCard">
@@ -55,22 +62,29 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
             <div className="row"><span>Keluar</span><b>{hm(res.checkOutAt)}</b></div>
           </div>
           <button className="btn" style={{ marginTop: 12 }} onClick={close}>Selesai</button>
-        </>) : (<>
+        </>) : isCheckedIn ? (<>
           <div className="attPHead"><span className="attPAvatar">{initial(sel.name)}</span><div><b>{clean(sel.name)}</b>
-            <div className="attPSub">{done ? "Absensi hari ini sudah lengkap" : out ? "Masukkan PIN untuk absen pulang" : "Masukkan PIN untuk absen masuk"}</div></div></div>
-          {done ? (<>
-            <div className="row"><span>Masuk</span><b>{hm(sel.inAt)}</b></div>
-            <div className="row"><span>Keluar</span><b>{hm(sel.outAt)}</b></div>
-            <button className="btn" style={{ marginTop: 12 }} onClick={close}>Tutup</button>
-          </>) : (<form onSubmit={submit}>
-            <label htmlFor="pin">PIN (4-8 digit)</label>
-            <input id="pin" className="field" type="password" inputMode="numeric" autoComplete="off" autoFocus value={pin}
-              onChange={(ev) => setPin(ev.target.value.replace(/\D/g, "").slice(0, 8))} />
-            {err && <div className="err" role="alert">{err}</div>}
-            <button className="btn" disabled={busy || pin.length < 4}>{busy ? "Memproses..." : out ? "Absen pulang" : "Absen masuk"}</button>
-            <button type="button" className="btn t" style={{ marginTop: 8 }} onClick={close}>Batal</button>
-          </form>)}
-        </>)}
+            <div className="attPSub">Klik tombol untuk absen pulang</div></div></div>
+          <div style={{ display: "flex", justifyContent: "center", margin: "16px 0" }}>
+            <button type="button" onClick={() => doCheckout(sel)} disabled={busy}
+              style={{ width: 120, height: 120, borderRadius: "50%", border: 0, background: busy ? "#E8F0FE" : "#1A73E8", color: busy ? "#1A73E8" : "#fff", fontSize: 16, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", userSelect: "none" }}>
+              {busy ? "..." : "Pulang"}
+            </button>
+          </div>
+          {err && <div className="err" role="alert">{err}</div>}
+          <button type="button" className="btn t" onClick={close}>Batal</button>
+        </>) : done ? (<>
+          <div className="row"><span>Masuk</span><b>{hm(sel.inAt)}</b></div>
+          <div className="row"><span>Keluar</span><b>{hm(sel.outAt)}</b></div>
+          <button className="btn" style={{ marginTop: 12 }} onClick={close}>Tutup</button>
+        </>) : (<form onSubmit={submit}>
+          <label htmlFor="pin">PIN (4-8 digit)</label>
+          <input id="pin" className="field" type="password" inputMode="numeric" autoComplete="off" autoFocus value={pin}
+            onChange={(ev) => setPin(ev.target.value.replace(/\D/g, "").slice(0, 8))} />
+          {err && <div className="err" role="alert">{err}</div>}
+          <button className="btn" disabled={busy || pin.length < 4}>{busy ? "Memproses..." : "Absen masuk"}</button>
+          <button type="button" className="btn t" style={{ marginTop: 8 }} onClick={close}>Batal</button>
+        </form>)}
       </div>
     </div>)}
   </>);

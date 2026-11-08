@@ -13,7 +13,7 @@ function icon(l: string, prefix = "") {
   if (/absensi/i.test(l)) return <svg {...S}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>;
   if (/karyawan|kasir/i.test(l)) return <svg {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21c1-5 15-5 16 0" /></svg>;
   if (/barber/i.test(l)) return <svg {...S}><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.12 8.12 12 12l-3.88 3.88M14.12 14.12 18 18M14.12 9.88 18 6" /></svg>; // shortcut: simplified scissors, upgrade to full icon set if more variants needed
-  if (/profil/i.test(l)) return prefix === "/admin" ? <svg {...S}><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg> : <svg {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21c1-5 15-5 16 0" /></svg>;
+  if (/profil/i.test(l)) return <svg {...S}><circle cx="12" cy="8" r="4" /><path d="M4 21c1-5 15-5 16 0" /></svg>;
   if (/transaksi|riwayat/i.test(l)) return <svg {...S}><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" /></svg>;
   if (/keluar/i.test(l)) return <svg {...S}><path d="M10 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5M16 17l5-5-5-5M21 12H9" /></svg>;
   if (/lainnya/i.test(l)) return <svg {...S}><path d="M4 6h16M4 12h16M4 18h16" /></svg>;

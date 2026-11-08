@@ -1,36 +1,40 @@
-import { guard } from "@/lib/guard"; import { prisma } from "@/lib/db"; import { stats } from "@/lib/earnings";
-import { startOfLocalDay, startOfLocalWeek, startOfLocalMonth, localParts, dayStart, validDate, rp } from "@/lib/time"; import { st } from "@/lib/labels";
-export default async function Earnings({ searchParams }: { searchParams: { from?: string; to?: string } }) {
+import { guard } from "@/lib/guard"; import { prisma } from "@/lib/db"; import { net } from "@/lib/earnings";
+import { startOfLocalDay, startOfLocalMonth, localParts, rp } from "@/lib/time"; import { st } from "@/lib/labels";
+import { resolveRange, type SP } from "@/lib/range"; import RangeFilter from "@/components/RangeFilter";
+const PAY = ["Kasbon", "Insentif", "Bonus"];
+export default async function Earnings({ searchParams }: { searchParams: SP }) {
   const u = await guard("EMPLOYEE"); const b = await prisma.branch.findUniqueOrThrow({ where: { id: u.branchId } }), tz = b.timezone;
-  const from = validDate(searchParams.from), to = validDate(searchParams.to);
-  const range = { ...(from && { gte: dayStart(from, tz) }), ...(to && { lt: new Date(dayStart(to, tz).getTime() + 86400000) }) };
-  const base = { userId: u.id, transaction: { status: "COMPLETED" as const } };
-  const day0 = startOfLocalDay(tz), weekAgo = new Date(day0.getTime() - 6 * 86400000);
-  const [today, week, month, served, byStatus, recent, rows] = await Promise.all([
-    stats(u.id, day0), stats(u.id, startOfLocalWeek(tz)), stats(u.id, startOfLocalMonth(tz)),
+  const { gte, lt } = resolveRange(searchParams, tz), base = { userId: u.id, transaction: { status: "COMPLETED" as const } };
+  const day0 = startOfLocalDay(tz), tomorrow = new Date(+day0 + 86400000);
+  const [todayNet, monthNet, served, byStatus, rows, pays] = await Promise.all([
+    net(u.id, day0, tomorrow), net(u.id, startOfLocalMonth(tz), tomorrow),
     prisma.transaction.count({ where: { artistId: u.id, status: "COMPLETED" } }),
     prisma.commission.groupBy({ by: ["status"], where: base, _sum: { amountRp: true } }),
-    prisma.commission.findMany({ where: { ...base, status: { not: "REVERSED" }, createdAt: { gte: weekAgo } }, select: { createdAt: true, amountRp: true } }),
-    prisma.commission.findMany({ where: { ...base, createdAt: range }, orderBy: { createdAt: "desc" }, take: 100, include: { transaction: { select: { publicId: true, serviceName: true } } } }) ]);
+    prisma.commission.findMany({ where: { ...base, createdAt: { gte, lt } }, orderBy: { createdAt: "desc" }, take: 100, include: { transaction: { select: { publicId: true, serviceName: true } } } }),
+    prisma.expenseRecord.findMany({ where: { userId: u.id, voidedAt: null, category: { in: PAY }, date: { gte, lt } }, orderBy: { date: "desc" }, take: 100 }) ]);
   const sum = (...s: string[]) => byStatus.filter((x) => s.includes(x.status)).reduce((a, x) => a + (x._sum.amountRp ?? 0), 0);
-  const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(weekAgo.getTime() + i * 86400000); return { key: localParts(d, tz).date, label: d.toLocaleDateString("id-ID", { timeZone: tz, weekday: "short" }), v: 0 }; });
-  for (const c of recent) { const d = days.find((x) => x.key === localParts(c.createdAt, tz).date); if (d) d.v += c.amountRp; }
-  const max = Math.max(1, ...days.map((d) => d.v)), periodTotal = rows.filter((r) => r.status !== "REVERSED").reduce((a, r) => a + r.amountRp, 0);
-  return (<><h1>Pendapatan Saya</h1>
-    <div className="grid stats">
-      <div className="card stat"><small>Hari ini</small><b>{rp(today.earningsRp)}</b></div><div className="card stat"><small>Minggu ini</small><b>{rp(week.earningsRp)}</b></div>
-      <div className="card stat"><small>Bulan ini</small><b>{rp(month.earningsRp)}</b></div><div className="card stat"><small>Pelanggan dilayani (total)</small><b>{served}</b></div>
-      <div className="card stat"><small>Total komisi yang memenuhi syarat</small><b>{rp(sum("PENDING", "APPROVED", "PAID"))}</b></div><div className="card stat"><small>Menunggu / disetujui</small><b>{rp(sum("PENDING", "APPROVED"))}</b></div>
-      <div className="card stat"><small>Dibayar</small><b>{rp(sum("PAID"))}</b></div></div>
-    <div className="card" style={{ marginTop: 16 }}><h2>Pendapatan · 7 hari terakhir</h2><div className="bars">{days.map((d, i) => <i key={d.key} className={i === 6 ? "hi" : ""} style={{ height: Math.max(2, (d.v / max) * 100) + "%" }} title={rp(d.v)} />)}</div>
-      <div className="lbl">{days.map((d) => <span key={d.key}>{d.label}</span>)}</div></div>
+  const paid = (c: string) => pays.filter((x) => x.category === c).reduce((a, x) => a + x.amountRp, 0);
+  const commission = rows.filter((r) => r.status !== "REVERSED").reduce((a, r) => a + r.amountRp, 0);
+  const incentive = paid("Insentif"), bonus = paid("Bonus"), kasbon = paid("Kasbon");
+  const n = Math.max(1, Math.min(92, Math.round((+lt - +gte) / 86400000)));
+  const days = Array.from({ length: n }, (_, i) => { const d = new Date(+gte + i * 86400000); return { key: localParts(d, tz).date, v: 0 }; });
+  for (const r of rows) { const d = days.find((x) => x.key === localParts(r.createdAt, tz).date); if (d && r.status !== "REVERSED") d.v += r.amountRp; }
+  const max = Math.max(1, ...days.map((d) => d.v));
+  return (<><h1>Pendapatan Saya</h1><RangeFilter sp={searchParams} />
+    <details style={{ marginTop: 16 }}><summary className="btn s t" style={{ listStyle: "none", display: "inline-flex", alignItems: "center" }}>Lihat pendapatan harian &amp; bulanan</summary>
+      <div className="grid stats" style={{ marginTop: 12, gridTemplateColumns: "1fr 1fr" }}>
+        <div className="card stat"><small>Penghasilan hari ini</small><b>{rp(todayNet)}</b></div><div className="card stat"><small>Penghasilan bulan ini</small><b>{rp(monthNet)}</b></div>
+        <div className="card stat"><small>Insentif</small><b>{rp(incentive)}</b></div><div className="card stat"><small>Bonus</small><b>{rp(bonus)}</b></div>
+        <div className="card stat"><small>Kasbon (dipotong)</small><b>{rp(kasbon)}</b></div><div className="card stat"><small>Pelanggan dilayani (total)</small><b>{served}</b></div>
+        <div className="card stat"><small>Menunggu / disetujui</small><b>{rp(sum("PENDING", "APPROVED"))}</b></div><div className="card stat"><small>Dibayar</small><b>{rp(sum("PAID"))}</b></div></div></details>
+    <div className="card" style={{ marginTop: 16 }}><h2>Komisi harian</h2><div className="bars">{days.map((d) => <i key={d.key} style={{ height: Math.max(2, (d.v / max) * 100) + "%" }} title={rp(d.v)} />)}</div></div>
     <div className="card" style={{ marginTop: 16 }}><h2>Riwayat pendapatan</h2>
-      <form style={{ display: "flex", gap: 8, alignItems: "end", marginBottom: 12, flexWrap: "wrap" }}>
-        <div><label htmlFor="f">Dari</label><input id="f" name="from" type="date" className="field" style={{ margin: 0 }} defaultValue={from} /></div>
-        <div><label htmlFor="t">Sampai</label><input id="t" name="to" type="date" className="field" style={{ margin: 0 }} defaultValue={to} /></div>
-        <button className="btn" style={{ width: 120 }}>Saring</button></form>
       <table><thead><tr><th>Tanggal</th><th>Transaksi</th><th>Layanan</th><th>Komisi</th><th>Status</th></tr></thead><tbody>
         {rows.map((r) => (<tr key={r.id}><td>{r.createdAt.toLocaleDateString("id-ID", { timeZone: tz })}</td><td>{r.transaction.publicId}</td><td>{r.transaction.serviceName}</td><td>{rp(r.amountRp)}</td><td><span className={"pill " + (r.status === "PAID" ? "ok" : r.status === "REVERSED" ? "bad" : "late")}>{st(r.status)}</span></td></tr>))}
         {!rows.length && <tr><td colSpan={5}>Belum ada pendapatan pada periode ini.</td></tr>}</tbody></table>
-      <div className="portal" style={{ margin: "10px 0 0" }}>Total periode (tanpa yang dibatalkan): <b>{rp(periodTotal)}</b> · 100 terbaru ditampilkan</div></div></>);
+      <div className="portal" style={{ margin: "10px 0 0" }}>Total komisi periode: <b>{rp(commission)}</b> · 100 terbaru ditampilkan</div></div>
+    {!!pays.length && <div className="card" style={{ marginTop: 16 }}><h2>Kasbon, insentif &amp; bonus</h2>
+      <table><thead><tr><th>Tanggal</th><th>Jenis</th><th>Jumlah</th></tr></thead><tbody>
+        {pays.map((p) => (<tr key={p.id}><td>{p.date.toLocaleDateString("id-ID", { timeZone: tz })}</td><td><span className={"pill " + (p.category === "Kasbon" ? "bad" : "ok")}>{p.category}</span></td><td>{rp(p.amountRp)}</td></tr>))}
+      </tbody></table></div>}</>);
 }

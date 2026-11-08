@@ -2,7 +2,15 @@
 .app{display:grid;grid-template-columns:96px 1fr;min-height:100vh}.side{margin:16px 0 16px 8px;padding:12px;display:flex;flex-direction:column;gap:12px;align-items:center;background:transparent}
 .sidecard{background:#fff;border:1px solid #DADCE0;border-radius:20px;box-shadow:0 4px 12px rgba(60,64,67,.08);padding:4px;width:100%}
 .brand{display:flex;align-items:center;justify-content:center;padding:0 0 4px;font-size:0}
-.logo{width:64px;height:64px;border-radius:8px;background:#fff;color:#1A73E8;border:1px solid #DADCE0;display:grid;place-items:center;font-weight:700;font-size:30px}
+.logo{width:64px;height:64px;border-radius:8px;background:#fff;color:#1A73E8;border:1px solid #DADCE0;display:grid;place-items:center;font-weight:700;font-size:30px;overflow:hidden}
+.logo img{width:100%;height:100%;object-fit:cover;display:block}
+.logoField{display:flex;gap:12px;align-items:center}
+.logoPick{display:grid;gap:6px;min-width:0}
+.logoPick small{color:#5F6368;font-size:12px}
+.logoPick .err{margin:0;color:#A50E0E}
+.logoBtns{display:flex;align-items:center;gap:12px}
+.linkBtn{background:none;border:0;padding:0;color:#5F6368;font:600 13px Inter,sans-serif;cursor:pointer}
+.linkBtn:hover{color:#A50E0E}
 .portal{display:none}
 .nav a,.nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:0;border-radius:14px;color:#3C4043;text-decoration:none;background:transparent;border:1px solid transparent;width:100%;font:600 10px/12px Inter,Roboto,Arial,sans-serif;cursor:pointer}
 .nlbl{display:block;font-size:10px;line-height:12px;font-weight:600;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
@@ -22,7 +30,7 @@ table{width:100%;border-collapse:collapse}th{text-align:left;color:#5F6368;font-
 .bars{display:flex;align-items:flex-end;gap:10px;height:140px}.bars i{flex:1;border-radius:10px 10px 4px 4px;background:#C2E7FF}.bars i.hi{background:#1A73E8}
 .lbl{display:flex;gap:10px;margin-top:6px;font-size:12px;color:#5F6368}.lbl span{flex:1;text-align:center}
 a{color:#1A73E8}
-.fr{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.fr>*{flex:1;min-width:140px}details{margin:4px 0}summary{cursor:pointer;color:#1A73E8}.btn.s{height:36px;padding:0 14px;width:auto}
+.fr{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.fr>*{flex:1;min-width:140px}.fr>.logoField{flex:1 1 100%}details{margin:4px 0}summary{cursor:pointer;color:#1A73E8}.btn.s{height:36px;padding:0 14px;width:auto}
 /* Employee attendance card */
 .attWrap{width:100%;margin-bottom:16px}
 .attCard{width:100%;padding:20px 24px;border:1px solid #DADCE0;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(60,64,67,.08);display:flex;flex-direction:column;gap:14px}
@@ -137,4 +145,39 @@ h1{font-size:20px;margin-bottom:14px}.card{padding:16px;border-radius:16px}.stat
 .mItem .dot{width:20px;height:20px}
 .mItem .dot svg{width:18px;height:18px}
 .main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+}
+
+/* Social-style profile */
+.prof{max-width:820px;padding:0;overflow:hidden}
+.profHead{display:flex;flex-direction:column;align-items:center;text-align:center;padding:20px 20px 16px;position:relative}
+.profMeta{display:flex;flex-direction:column;align-items:center;min-width:0}
+.profAva{width:88px;height:88px;border-radius:50%;background:#E8F0FE;color:#1A73E8;display:grid;place-items:center;font-size:30px;line-height:1;font-weight:700;overflow:hidden;box-shadow:0 4px 12px rgba(60,64,67,.18)}
+.profAva img{width:100%;height:100%;object-fit:cover;display:block}
+.profName{font-size:20px;font-weight:700;line-height:26px;margin-top:10px;overflow-wrap:anywhere}
+.profRole{margin-top:5px;background:#E8F0FE;color:#1A73E8}
+.profMail{font-size:13px;color:#5F6368;margin-top:5px;overflow-wrap:anywhere}
+.profStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #F1F3F4;border-bottom:1px solid #F1F3F4;padding:12px 0}
+.profStat{text-align:center;border-right:1px solid #F1F3F4;padding:0 6px;min-width:0}
+.profStat:last-child{border-right:0}
+.profStat b{display:block;font-size:18px;line-height:24px;font-weight:700;overflow-wrap:anywhere}
+.profStat small{display:block;font-size:11px;line-height:14px;color:#5F6368;margin-top:2px}
+.profRows{padding:4px 20px 14px}
+.profRows .row:last-child{border-bottom:0}
+.profNote{margin:0 20px 18px;font-size:12px;line-height:16px;color:#5F6368}
+@media(min-width:761px){
+.profHead{flex-direction:row;align-items:center;text-align:left;gap:18px;padding:20px 24px 18px}
+.profMeta{align-items:flex-start}
+.profName{margin-top:0}
+.profRows{padding-left:24px;padding-right:24px}
+.profNote{margin-left:24px;margin-right:24px}
+}
+@media(max-width:480px){.profStat b{font-size:16px}.profStat small{font-size:10px}}
+
+/* shortcut: custom range scrolls sideways on phones instead of wrapping; replace with a date popover if needed */
+.range{flex-wrap:wrap}
+@media(max-width:760px){
+.range{flex-wrap:nowrap;overflow-x:auto}
+.range>*{flex:0 0 auto}
+.range:not(:has(select option[value="custom"]:checked))>div:first-child{flex:1 1 0;min-width:0}
+.range:not(:has(select option[value="custom"]:checked)) .rangeDate{display:none}
 }

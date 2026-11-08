@@ -1,41 +1,8 @@
 "use client";
 import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
+import { buildQris } from "@/lib/qris";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
-function buildQris(staticQris: string, amount: number) {
-  if (!staticQris || amount <= 0) return "";
-  // strip existing CRC
-  let s = staticQris;
-  const crcIdx = s.lastIndexOf("6304");
-  if (crcIdx >= 0) s = s.slice(0, crcIdx);
-  // parse TLV, drop tag 01? set to dynamic (12), drop tag 54
-  let out = "", i = 0;
-  while (i < s.length) {
-    const tag = s.slice(i, i + 2); i += 2;
-    const len = parseInt(s.slice(i, i + 2), 10); i += 2;
-    const val = s.slice(i, i + len); i += len;
-    if (tag === "01") { out += "010212"; continue; }
-    if (tag === "54") continue;
-    out += tag + String(val.length).padStart(2, "0") + val;
-  }
-  // insert amount (tag 54) before country code (58) if present
-  const amt = String(amount);
-  const amtField = "54" + String(amt.length).padStart(2, "0") + amt;
-  const idx58 = out.indexOf("58");
-  if (idx58 >= 0) out = out.slice(0, idx58) + amtField + out.slice(idx58);
-  else out += amtField;
-  // CRC
-  const crcInput = out + "6304";
-  let crc = 0xFFFF;
-  for (let c = 0; c < crcInput.length; c++) {
-    crc ^= crcInput.charCodeAt(c) << 8;
-    for (let j = 0; j < 8; j++) {
-      if (crc & 0x8000) crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
-      else crc = (crc << 1) & 0xFFFF;
-    }
-  }
-  return crcInput + crc.toString(16).toUpperCase().padStart(4, "0");
-}
 type S = { id: string; name: string; description: string | null; priceRp: number }; type A = { id: string; name: string; available: boolean };
 export default function POS() {
   const [services, setS] = useState<S[]>([]), [artists, setA] = useState<A[]>([]);
@@ -53,7 +20,7 @@ export default function POS() {
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
-  useEffect(() => { if (qrisPayload) QRCode.toDataURL(qrisPayload, { width: 220 }).then(setQrDataUrl); else setQrDataUrl(""); }, [qrisPayload]);
+  useEffect(() => { if (qrisPayload) QRCode.toDataURL(qrisPayload, { scale: 5, margin: 4 }).then(setQrDataUrl); else setQrDataUrl(""); }, [qrisPayload]);
   const shown = artists.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (!onlyAvail || a.available));
   useEffect(() => { if (pay === "qris") setCash(total); }, [pay, total]);
   async function confirm() {
@@ -112,7 +79,7 @@ export default function POS() {
       {pay === "qris" && (<div style={{ textAlign: "center", margin: "8px 0 12px" }}>
         {!qrisStatic && <div className="err">Set NEXT_PUBLIC_QRIS_STATIC di .env untuk QRIS dinamis.</div>}
         {qrisStatic && svc && (<>
-          {qrDataUrl ? <img src={qrDataUrl} alt="QRIS" /> : <div className="portal">Membuat QR…</div>}
+          {qrDataUrl ? <img src={qrDataUrl} alt="QRIS" style={{ maxWidth: "100%", height: "auto" }} /> : <div className="portal">Membuat QR…</div>}
           <div className="portal" style={{ marginTop: 8 }}>Scan QRIS untuk bayar {rp(total)}</div>
         </>)}
       </div>)}

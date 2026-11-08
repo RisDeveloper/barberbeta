@@ -1,6 +1,12 @@
-import { ctx } from "@/lib/admin";
+import { ctx } from "@/lib/admin"; import { prisma } from "@/lib/db"; import { startOfLocalDay } from "@/lib/time";
+import ProfileCard from "@/components/ProfileCard";
 export default async function Profile() {
   const { u, b } = await ctx();
-  return (<><h1>Profil</h1><div className="card" style={{ maxWidth: 480 }}><div className="row"><span>Nama</span>{u.name}</div><div className="row"><span>Email</span>{u.email}</div>
-    <div className="row"><span>Peran</span>Admin</div><div className="row"><span>Cabang</span>{b.name}</div><div className="row"><span>Zona waktu</span>{b.timezone}</div></div></>);
+  const [barber, tx, svc] = await Promise.all([
+    prisma.user.count({ where: { branchId: b.id, role: "EMPLOYEE", deletedAt: null, active: true } }),
+    prisma.transaction.count({ where: { branchId: b.id, status: "COMPLETED", createdAt: { gte: startOfLocalDay(b.timezone) } } }),
+    prisma.service.count({ where: { deletedAt: null } }) ]);
+  return (<><h1>Profil</h1><ProfileCard name={u.name} role="Admin" email={u.email}
+    stats={[["Barber", barber], ["Transaksi hari ini", tx], ["Layanan", svc]]}
+    rows={[["Cabang", b.name], ["Zona waktu", b.timezone]]} /></>);
 }

@@ -45,6 +45,7 @@ enum PayStatus {
 model Branch {
   id            String   @id @default(cuid())
   name          String
+  logoUrl       String?  // data URL, small square image
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight
   lateGraceMin  Int      @default(10)
@@ -68,6 +69,7 @@ model User {
   role        Role
   branch      Branch?  @relation(fields: [branchId], references: [id])
   branchId    String? // null only for OWNER
+  logoUrl     String?  // owner portal logo (data URL, small square image)
   active      Boolean  @default(true)
   deletedAt   DateTime?
   sessions    Session[]
@@ -77,6 +79,7 @@ model User {
   artistTx    Transaction[]    @relation("artist")
   commissions Commission[]
   rules       CommissionRule[]
+  expenses    ExpenseRecord[]  @relation("employeePay")
 
   @@index([branchId, role])
 }
@@ -234,9 +237,12 @@ model ExpenseRecord {
   paymentMethod String
   attachment    String? // proof: link or note (file upload not built yet)
   createdById   String
+  user          User?     @relation("employeePay", fields: [userId], references: [id])
+  userId        String? // employee the kasbon/insentif/bonus belongs to
   voidedAt      DateTime?
   voidReason    String?
   createdAt     DateTime  @default(now())
 
   @@index([date])
+  @@index([userId, date])
 }

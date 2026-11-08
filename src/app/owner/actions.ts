@@ -10,10 +10,21 @@ const audit = (actorId: string, action: string, entity: string, entityId: string
 const hhmm = (s: string) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
 async function adminTaken(branchId: string, except?: string) { if (await prisma.user.findFirst({ where: { role: "ADMIN", branchId, active: true, deletedAt: null, id: { not: except } } })) throw new HttpError(409, "Cabang ini sudah memiliki admin aktif"); }
 const ROLE = z.enum(["ADMIN", "CASHIER", "EMPLOYEE"]);
+const logoOf = (fd: FormData) => {
+  const raw = fd.get("logo"), v = raw === null ? null : String(raw);
+  if (v !== null && v !== "" && (!/^data:image\/(png|jpeg|webp);base64,/.test(v) || v.length > 400_000)) throw new HttpError(400, "Format logo tidak valid");
+  return v;
+};
+
+export async function saveOwnerLogo(fd: FormData) {
+  const o = await me(), logo = logoOf(fd);
+  await prisma.user.update({ where: { id: o.id }, data: { logoUrl: logo || null } }); done();
+}
 
 export async function saveBranch(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int }), fd);
-  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, active: fd.get("active") === "on" || !d.id };
+  const logo = logoOf(fd);
+  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, active: fd.get("active") === "on" || !d.id, ...(logo === null ? {} : { logoUrl: logo || null }) };
   const b = d.id ? await prisma.branch.update({ where: { id: d.id }, data }) : await prisma.branch.create({ data });
   await audit(o.id, d.id ? "BRANCH_UPDATE" : "BRANCH_CREATE", "Branch", b.id, data); done();
 }

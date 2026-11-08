@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db"; import { ownerCtx, TZ } from "@/lib/owner"; import { startOfLocalMonth, rp } from "@/lib/time"; import { F } from "@/components/F"; import Tbl from "@/components/Tbl"; import { saveBranch, assignAdmin } from "../actions";
+import { prisma } from "@/lib/db"; import { ownerCtx, TZ } from "@/lib/owner"; import { startOfLocalMonth, rp } from "@/lib/time"; import { F } from "@/components/F"; import LogoField from "@/components/LogoField"; import Tbl from "@/components/Tbl"; import { saveBranch, assignAdmin } from "../actions";
 const hm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 const BF = ({ b }: { b?: any }) => (<form action={saveBranch} className="fr">{b && <input type="hidden" name="id" value={b.id} />}<F l="Nama" n="name" d={b?.name} r /><F l="Zona waktu" n="timezone" d={b?.timezone ?? "Asia/Jakarta"} r />
-  <F l="Awal shift" n="shiftStart" t="time" d={hm(b?.shiftStartMin ?? 540)} r /><F l="Toleransi terlambat (menit)" n="lateGraceMin" t="number" d={b?.lateGraceMin ?? 10} r />
+  <F l="Awal shift" n="shiftStart" t="time" d={hm(b?.shiftStartMin ?? 540)} r /><input type="hidden" name="lateGraceMin" value={b?.lateGraceMin ?? 10} /><LogoField current={b?.logoUrl} />
   {b && <label><input type="checkbox" name="active" defaultChecked={b.active} /> Aktif</label>}<button className="btn s">Simpan</button></form>);
 export default async function Branches() {
   await ownerCtx(); const gte = startOfLocalMonth(TZ);

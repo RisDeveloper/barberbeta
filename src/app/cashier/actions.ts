@@ -20,15 +20,15 @@ export async function addExpense(_: FS, fd: FormData): Promise<FS> {
   } catch (e) { return { error: e instanceof Error ? e.message : "Gagal menyimpan" }; }
 }
 
-const KasbonSchema = z.object({ userId: z.string().min(1), amountRp: z.coerce.number().int().min(1) });
-export async function addKasbon(_: FS, fd: FormData): Promise<FS> {
+const PaySchema = z.object({ userId: z.string().min(1), kind: z.enum(["Kasbon", "Insentif", "Bonus"]), amountRp: z.coerce.number().int().min(1) });
+export async function addEmployeePay(_: FS, fd: FormData): Promise<FS> {
   const u = await guard("CASHIER");
   try {
-    const d = KasbonSchema.parse(Object.fromEntries(fd));
+    const d = PaySchema.parse(Object.fromEntries(fd));
     const emp = await prisma.user.findFirst({ where: { id: d.userId, branchId: u.branchId, deletedAt: null, active: true, role: { not: "OWNER" } } });
     if (!emp) throw new HttpError(400, "Karyawan tidak ditemukan di cabang ini");
-    const e = await prisma.expenseRecord.create({ data: { date: new Date(), category: "Kasbon", description: `Kasbon - ${emp.name}`, amountRp: d.amountRp, branchId: u.branchId, paymentMethod: "Tunai", createdById: u.id } });
-    await prisma.auditLog.create({ data: { actorId: u.id, action: "KASBON_CREATE", entity: "ExpenseRecord", entityId: e.id, meta: { userId: emp.id, name: emp.name, amountRp: d.amountRp } } });
+    const e = await prisma.expenseRecord.create({ data: { date: new Date(), category: d.kind, description: `${d.kind} - ${emp.name}`, amountRp: d.amountRp, branchId: u.branchId, paymentMethod: "Tunai", createdById: u.id, userId: emp.id } });
+    await prisma.auditLog.create({ data: { actorId: u.id, action: "EMPLOYEE_PAY_CREATE", entity: "ExpenseRecord", entityId: e.id, meta: { kind: d.kind, userId: emp.id, name: emp.name, amountRp: d.amountRp } } });
     revalidatePath("/cashier/expenses"); revalidatePath("/cashier");
     return { ok: true };
   } catch (e) { return { error: e instanceof Error ? e.message : "Gagal menyimpan" }; }
