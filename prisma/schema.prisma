@@ -129,8 +129,8 @@ model Service {
   branch       Branch?       @relation(fields: [branchId], references: [id])
   branchId     String? // null = all branches
   name         String
-  description  String?
   priceRp      Int
+  commissionRp Int           @default(0)
   active       Boolean       @default(true)
   deletedAt    DateTime?
   transactions Transaction[]
@@ -188,8 +188,8 @@ model Commission {
   transactionId String
   user          User           @relation(fields: [userId], references: [id])
   userId        String
-  rule          CommissionRule @relation(fields: [ruleId], references: [id])
-  ruleId        String
+  rule          CommissionRule? @relation(fields: [ruleId], references: [id])
+  ruleId        String?
   amountRp      Int // snapshot, never recomputed
   status        PayStatus      @default(PENDING)
   createdAt     DateTime       @default(now())

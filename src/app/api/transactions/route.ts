@@ -22,10 +22,16 @@ export const POST = (req: Request) => handle(async () => {
       idempotencyKey: b.idempotencyKey, branchId, cashierId: user.id, artistId: artist.id, serviceId: service.id, serviceName: service.name,
       priceRp: service.priceRp, discountRp: b.discountRp, totalRp, cashReceivedRp: b.cashReceivedRp, changeRp: b.cashReceivedRp - totalRp, paymentMethod: b.paymentMethod,
       customerName: b.customerName, status: "COMPLETED" } });
-    for (const [uid, role] of [[artist.id, "EMPLOYEE"], [user.id, "CASHIER"]] as const) {
-      const c = await commissionFor(db, uid, role, branchId, totalRp, now);
-      if (c) await db.commission.create({ data: { transactionId: created.id, userId: uid, ruleId: c.ruleId, amountRp: c.amountRp } });
+    // komisi karyawan: pakai komisi per-layanan jika diisi, fallback ke aturan komisi
+    if (service.commissionRp > 0) {
+      await db.commission.create({ data: { transactionId: created.id, userId: artist.id, ruleId: null, amountRp: service.commissionRp } });
+    } else {
+      const c = await commissionFor(db, artist.id, "EMPLOYEE", branchId, totalRp, now);
+      if (c) await db.commission.create({ data: { transactionId: created.id, userId: artist.id, ruleId: c.ruleId, amountRp: c.amountRp } });
     }
+    // komisi kasir dari aturan komisi
+    const cc = await commissionFor(db, user.id, "CASHIER", branchId, totalRp, now);
+    if (cc) await db.commission.create({ data: { transactionId: created.id, userId: user.id, ruleId: cc.ruleId, amountRp: cc.amountRp } });
     await db.auditLog.create({ data: { actorId: user.id, action: "TX_CREATE", entity: "Transaction", entityId: created.id } });
     return created;
   });

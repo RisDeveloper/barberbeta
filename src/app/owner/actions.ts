@@ -63,8 +63,8 @@ export async function resetPin(fd: FormData) {
   await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); done();
 }
 export async function saveService(fd: FormData) {
-  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, description: os, branchId: os }), fd);
-  const data = { name: d.name, priceRp: d.priceRp, description: d.description ?? null, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
+  const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
   const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data }); await audit(o.id, "SERVICE_SAVE", "Service", s.id, data); done();
 }
 const bp = (s: string) => { const m = s.trim().match(/^(\d{1,3})(?:\.(\d{1,2}))?$/); if (!m) throw new HttpError(400, "Persentase tidak valid"); return +m[1] * 100 + +((m[2] ?? "").padEnd(2, "0") || 0); }; // "2.5" -> 250, integer only
