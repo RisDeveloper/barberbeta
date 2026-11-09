@@ -1,8 +1,8 @@
 *{box-sizing:border-box}body{margin:0;background:#F0F4F9;color:#202124;font:14px/1.4 Inter,Roboto,Arial,sans-serif}
-.app{display:grid;grid-template-columns:96px 1fr;min-height:100vh}.side{margin:16px 0 16px 8px;padding:12px;display:flex;flex-direction:column;gap:12px;align-items:center;background:transparent}
+.app{display:grid;grid-template-columns:112px 1fr;min-height:100vh}.side{margin:16px 0 16px 8px;padding:12px;display:flex;flex-direction:column;gap:12px;align-items:center;background:transparent}
 .sidecard{background:#fff;border:1px solid #DADCE0;border-radius:20px;box-shadow:0 4px 12px rgba(60,64,67,.08);padding:4px;width:100%}
 .brand{display:flex;align-items:center;justify-content:center;padding:0 0 4px;font-size:0}
-.logo{width:64px;height:64px;border-radius:8px;background:#fff;color:#7A5C00;border:1px solid #DADCE0;display:grid;place-items:center;font-weight:700;font-size:30px;overflow:hidden}
+.logo{width:80px;height:80px;border-radius:8px;background:#fff;color:#7A5C00;border:1px solid #DADCE0;display:grid;place-items:center;font-weight:700;font-size:30px;overflow:hidden}
 .logo img{width:100%;height:100%;object-fit:cover;display:block}
 .logoField{display:flex;gap:12px;align-items:center}
 .logoPick{display:grid;gap:6px;min-width:0}
@@ -94,7 +94,7 @@ a{color:#8A6A00}
 @media(max-width:1024px){th,td{white-space:nowrap}}
 @media(max-width:900px){.pos{grid-template-columns:minmax(0,1fr)}}
 @media(min-width:761px) and (max-width:1024px){
-.app{grid-template-columns:96px minmax(0,1fr)}.side{padding:12px}
+.app{grid-template-columns:112px minmax(0,1fr)}.side{padding:12px}
 .brand{font-size:0;justify-content:center;padding:4px 0 14px}.portal{display:none}
 .nav a,.nav button{font-size:10px;gap:2px;justify-content:center;padding:6px 2px;border-radius:8px}
 .main{padding:56px 20px 28px}}
@@ -232,10 +232,8 @@ html[data-theme="dark"] .profRole{background:#3A3212;color:#FED950}
 html[data-theme="dark"] .attBranch{background:#2A2E33;border-color:#3C4043;color:#BDC1C6}
 html[data-theme="dark"] .bars i{background:#4A3F1A}
 html[data-theme="dark"] .bars i.hi{background:#FED950}
-html[data-theme="dark"] .logo{background:#1B1F24;border-color:#4A3D12;color:#FED950}
-html[data-theme="dark"] .center{background:radial-gradient(circle at 50% 30%, rgba(254,217,80,.12), transparent 55%)}
+html[data-theme="dark"] .logo{background:#fff;border-color:#DADCE0;color:#202124}
 html[data-theme="dark"] .login{background:#1E2228;border-color:#4A3D12;border-top:4px solid #FED950;box-shadow:0 0 0 1px rgba(254,217,80,.12),0 24px 60px rgba(0,0,0,.5)}
-html[data-theme="dark"] .login .logo{box-shadow:0 0 0 1px #4A3D12,0 0 24px rgba(254,217,80,.18)}
 @media(max-width:760px){
 html[data-theme="dark"] .side{background:#1B1F24;border-color:#3C4043}
 html[data-theme="dark"] .nav a:hover,html[data-theme="dark"] .nav button:hover{background:transparent;color:#FED950}
