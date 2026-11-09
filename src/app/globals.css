@@ -240,3 +240,5 @@ html[data-theme="dark"] .side{background:#1B1F24;border-color:#3C4043}
 html[data-theme="dark"] .nav a:hover,html[data-theme="dark"] .nav button:hover{background:transparent;color:#FED950}
 html[data-theme="dark"] .nav a.on{background:transparent;color:#FED950}
 }
+.receipt{display:none}
+@media print{@page{margin:6mm}body *{visibility:hidden}.receipt,.receipt *{visibility:visible}.receipt{position:absolute;left:0;top:0;width:100%;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#000;background:#fff;padding:4px}.receipt .r-center{text-align:center}.receipt .r-bold{font-weight:700;font-size:16px;margin:0 0 4px}.receipt .r-row{display:flex;justify-content:space-between;margin:2px 0;gap:8px}.receipt .r-row span:first-child{flex:1}.receipt .r-line{border-top:1px dashed #000;margin:6px 0}.receipt .r-total{font-weight:700}}

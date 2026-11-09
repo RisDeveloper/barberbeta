@@ -12,10 +12,12 @@ export default function POS() {
   const cashRef = useRef<HTMLInputElement>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
   const qrisStatic = process.env.NEXT_PUBLIC_QRIS_STATIC ?? "";
-  const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number } | null>(null);
+  const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number; cashReceivedRp?: number } | null>(null);
+  const [branchName, setBranchName] = useState("");
   const key = useRef<string>();
-  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => setS(d.services ?? [])).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
+  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
+  useEffect(() => { if (!done) return; const t = setTimeout(() => window.print(), 300); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
@@ -31,8 +33,29 @@ export default function POS() {
     key.current = undefined; setDone(d);
   }
   function reset() { setDone(null); setSid(""); setAid(""); setDisc(0); setCash(0); setCust(""); load(); }
-  if (done) return (<div className="card" style={{ maxWidth: 420 }}><h2>Transaksi berhasil</h2><div className="row"><span>ID</span>{done.id}</div>
-    <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br /><button className="btn" onClick={reset}>Transaksi baru</button></div>);
+  if (done) return (<>
+    <div className="card" style={{ maxWidth: 420 }}><h2>Transaksi berhasil</h2><div className="row"><span>ID</span>{done.id}</div>
+      <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br />
+      <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={reset}>Transaksi baru</button><button className="btn t" onClick={() => window.print()}>Cetak struk</button></div></div>
+    <div className="receipt">
+      <div className="r-center r-bold">BarberStory</div>
+      {branchName && <div className="r-center">{branchName}</div>}
+      <div className="r-line" />
+      <div className="r-row"><span>Tanggal</span><span>{new Date().toLocaleString("id-ID")}</span></div>
+      <div className="r-row"><span>No</span><span>{done.id}</span></div>
+      <div className="r-line" />
+      <div className="r-row"><span>Layanan</span><span>{svc?.name ?? "-"}</span></div>
+      <div className="r-row"><span>Barber</span><span>{art?.name ?? "-"}</span></div>
+      {cust && <div className="r-row"><span>Pelanggan</span><span>{cust}</span></div>}
+      <div className="r-line" />
+      <div className="r-row"><span>Harga</span><span>{rp(svc?.priceRp ?? 0)}</span></div>
+      {disc > 0 && <div className="r-row"><span>Diskon</span><span>-{rp(disc)}</span></div>}
+      <div className="r-row r-total"><span>Total</span><span>{rp(done.totalRp)}</span></div>
+      <div className="r-row"><span>{pay === "qris" ? "QRIS" : "Tunai"}</span><span>{rp(done.cashReceivedRp ?? cash)}</span></div>
+      <div className="r-row"><span>Kembalian</span><span>{rp(done.changeRp)}</span></div>
+      <div className="r-line" />
+      <div className="r-center">Terima kasih!</div>
+    </div></>);
   return (<div className="pos"><div className="grid">
     <div className="card"><h2>1 · Pilih layanan</h2><div className="svcgrid">
       {services.map((s) => (<div key={s.id} className={"svc" + (s.id === sid ? " sel" : "")} title={s.description ?? s.name}>
