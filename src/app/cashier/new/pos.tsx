@@ -29,8 +29,8 @@ export default function POS() {
     const r = await fetch("/api/transactions", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ serviceId: sid, artistId: aid, discountRp: disc, cashReceivedRp: cash, paymentMethod: pay === "qris" ? "QRIS" : "Tunai", customerName: cust || undefined, idempotencyKey: key.current }) });
     const d = await r.json(); setBusy(false);
-    if (!r.ok) return setErr(d.error ?? "Gagal");
-    key.current = undefined; setDone(d);
+    if (!r.ok) { setErr(d.error ?? "Gagal"); (window as any).__showToast?.("err", d.error ?? "Gagal"); return; }
+    key.current = undefined; setDone(d); (window as any).__showToast?.("ok", "Transaksi berhasil");
   }
   function reset() { setDone(null); setSid(""); setAid(""); setDisc(0); setCash(0); setCust(""); load(); }
   if (done) return (<>
