@@ -181,3 +181,59 @@ h1{font-size:20px;margin-bottom:14px}.card{padding:16px;border-radius:16px}.stat
 .range:not(:has(select option[value="custom"]:checked))>div:first-child{flex:1 1 0;min-width:0}
 .range:not(:has(select option[value="custom"]:checked)) .rangeDate{display:none}
 }
+
+/* ===== Light / dark theme ===== */
+:root{--card:#fff;--muted:#5F6368;--ok-bg:#C4EED0;--ok-fg:#0D652D}
+html[data-theme="dark"]{--card:#1B1F24;--muted:#9AA0A6;--ok-bg:#123B26;--ok-fg:#8FE3AC;color-scheme:dark;background:#0F1115}
+.themeBtn{position:fixed;right:16px;bottom:24px;z-index:9;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid #DADCE0;background:#fff;color:#202124;display:grid;place-items:center;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.themeBtn:hover{background:#F1F3F4}
+.themeBtn .iSun{display:none}
+html[data-theme="dark"] .themeBtn{background:#1B1F24;border-color:#3C4043;color:#E8EAED}
+html[data-theme="dark"] .themeBtn:hover{background:#2A2E33}
+html[data-theme="dark"] .themeBtn .iSun{display:block}
+html[data-theme="dark"] .themeBtn .iMoon{display:none}
+@media(max-width:760px){.themeBtn{right:14px;bottom:calc(84px + env(safe-area-inset-bottom,0px));width:40px;height:40px}}
+html[data-theme="dark"] body{background:#0F1115;color:#E8EAED}
+html[data-theme="dark"] a,html[data-theme="dark"] summary,html[data-theme="dark"] .linkBtn,html[data-theme="dark"] .btn.t,html[data-theme="dark"] .svcBtn{color:#8AB4F8}
+html[data-theme="dark"] .linkBtn:hover{color:#F2A6A0}
+html[data-theme="dark"] .sidecard,html[data-theme="dark"] .card,html[data-theme="dark"] .tile,html[data-theme="dark"] .svc,html[data-theme="dark"] .attCard,html[data-theme="dark"] .attPCard,html[data-theme="dark"] .attModalCard,html[data-theme="dark"] .moreMenu{background:#1B1F24;border-color:#3C4043}
+html[data-theme="dark"] .mItem{background:#1B1F24;border-color:#3C4043;color:#E8EAED}
+html[data-theme="dark"] .btn.t,html[data-theme="dark"] .svcBtn{background:#1B1F24;border-color:#3C4043}
+html[data-theme="dark"] .btn.t:hover,html[data-theme="dark"] .svcBtn:hover{background:#2A2E33}
+html[data-theme="dark"] .tile.sel,html[data-theme="dark"] .svc.sel{background:#172A44;border-color:#8AB4F8}
+html[data-theme="dark"] .nav a,html[data-theme="dark"] .nav button{color:#BDC1C6}
+html[data-theme="dark"] .nav a:hover,html[data-theme="dark"] .nav button:hover,html[data-theme="dark"] .mItem:hover{background:#2A2E33}
+html[data-theme="dark"] .nav a.on{background:#1F3A5F;border-color:#2F5A8F;color:#8AB4F8}
+html[data-theme="dark"] h1,html[data-theme="dark"] .stat b,html[data-theme="dark"] .svcTitle,html[data-theme="dark"] .svcPrice,html[data-theme="dark"] .attName,html[data-theme="dark"] .attTimeBig,html[data-theme="dark"] .attPName{color:#E8EAED}
+html[data-theme="dark"] .stat small,html[data-theme="dark"] .tile small,html[data-theme="dark"] .logoPick small,html[data-theme="dark"] label,html[data-theme="dark"] .row span,html[data-theme="dark"] th,html[data-theme="dark"] .attRole,html[data-theme="dark"] .attMeta,html[data-theme="dark"] .attNote,html[data-theme="dark"] .attPTime,html[data-theme="dark"] .attPSub,html[data-theme="dark"] .profMail,html[data-theme="dark"] .profStat small,html[data-theme="dark"] .profNote,html[data-theme="dark"] .lbl,html[data-theme="dark"] .attTileHead{color:#9AA0A6}
+html[data-theme="dark"] th,html[data-theme="dark"] td,html[data-theme="dark"] .row,html[data-theme="dark"] .profStats,html[data-theme="dark"] .profStat{border-color:#2A2E33}
+html[data-theme="dark"] .field,html[data-theme="dark"] input:not([type=checkbox]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#202124;color:#E8EAED;border-color:#3C4043}
+html[data-theme="dark"] .err{color:#F2A6A0}
+html[data-theme="dark"] .mute{background:#2A2E33;color:#BDC1C6}
+html[data-theme="dark"] .ok{background:#123B26;color:#8FE3AC}
+html[data-theme="dark"] .late{background:#3A2F12;color:#F5D48A}
+html[data-theme="dark"] .bad{background:#3B1715;color:#F2A6A0}
+html[data-theme="dark"] .attBadge.on{background:#123B26;color:#8FE3AC}
+html[data-theme="dark"] .attBadge.late{background:#2A2E33;border-color:#A50E0E;color:#E8EAED}
+html[data-theme="dark"] .attBadge.off{background:#2A2E33;color:#9AA0A6}
+html[data-theme="dark"] .attTile{background:#202124;border-color:#3C4043}
+html[data-theme="dark"] .attTile.late{background:#202124;border-color:#A50E0E}
+html[data-theme="dark"] .attTileHead i{background:#9AA0A6}
+html[data-theme="dark"] .attTileHead i.on{background:#8FE3AC}
+html[data-theme="dark"] .attNote.ok{color:#8FE3AC}
+html[data-theme="dark"] .attTimeBig.muted{color:#9AA0A6}
+html[data-theme="dark"] .attPCard.done{background:#14261C}
+html[data-theme="dark"] .attPCard:hover{border-color:#8AB4F8}
+html[data-theme="dark"] .attPAvatar,html[data-theme="dark"] .profAva,html[data-theme="dark"] .svcImg{background:#1F3A5F;color:#8AB4F8}
+html[data-theme="dark"] .attAvatar{background:#1F3A5F;color:#E8EAED}
+html[data-theme="dark"] .attModal{background:rgba(0,0,0,.65)}
+html[data-theme="dark"] .profRole{background:#1F3A5F;color:#8AB4F8}
+html[data-theme="dark"] .attBranch{background:#2A2E33;border-color:#3C4043;color:#BDC1C6}
+html[data-theme="dark"] .bars i{background:#2F5A8F}
+html[data-theme="dark"] .bars i.hi{background:#8AB4F8}
+html[data-theme="dark"] .logo{background:#1B1F24;border-color:#3C4043;color:#8AB4F8}
+@media(max-width:760px){
+html[data-theme="dark"] .side{background:#1B1F24;border-color:#3C4043}
+html[data-theme="dark"] .nav a:hover,html[data-theme="dark"] .nav button:hover{background:transparent;color:#8AB4F8}
+html[data-theme="dark"] .nav a.on{background:transparent;color:#8AB4F8}
+}

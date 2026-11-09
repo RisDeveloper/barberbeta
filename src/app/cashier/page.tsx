@@ -19,7 +19,7 @@ export default async function Dashboard({ searchParams: sp }: { searchParams: SP
   const revenue = a._sum.totalRp ?? 0, cash = ca._sum.totalRp ?? 0, qris = qa._sum.totalRp ?? 0, expense = ex._sum.amountRp ?? 0, kasbon = kb._sum.amountRp ?? 0;
   const label = p === "date" ? `hari ${new Intl.DateTimeFormat("id-ID", { timeZone: b.timezone, weekday: "long" }).format(gte).toLowerCase()}, ${fmt(gte)}` : P.find(([k]) => k === p)![1].toLowerCase();
   return (<><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, marginBottom: 16 }}>
-    <h1 style={{ margin: 0 }}>Dasbor</h1><span style={{ fontSize: 13, color: "#5F6368" }}>{b.name}</span>
+    <h1 style={{ margin: 0 }}>Dasbor</h1><span style={{ fontSize: 13, color: "var(--muted, #5F6368)" }}>{b.name}</span>
   </div>
     <form style={{ marginBottom: 16 }}>
       <div style={{ display: "inline-flex", flexDirection: "column", maxWidth: "100%" }}>

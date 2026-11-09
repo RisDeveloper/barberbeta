@@ -73,7 +73,7 @@ export default function POS() {
         <div className="cashgrid">
           {[1000, 5000, 10000, 20000, 50000, 100000].map((v) => (<button key={v} type="button" className="btn t" onClick={() => setCash((c) => c + v)}>{rp(v)}</button>))}
         </div>
-        <div style={{ background: "#C4EED0", color: "#0D652D", borderRadius: 16, padding: "12px 16px", margin: "4px 0 12px" }}><small>Kembalian</small><div style={{ fontSize: 26, fontWeight: 600 }}>{svc && change >= 0 ? rp(change) : "—"}</div></div>
+        <div style={{ background: "var(--ok-bg, #C4EED0)", color: "var(--ok-fg, #0D652D)", borderRadius: 16, padding: "12px 16px", margin: "4px 0 12px" }}><small>Kembalian</small><div style={{ fontSize: 26, fontWeight: 600 }}>{svc && change >= 0 ? rp(change) : "—"}</div></div>
       </>)}
       {pay === "qris" && (<div style={{ textAlign: "center", margin: "8px 0 12px" }}>
         {!qrisStatic && <div className="err">Set NEXT_PUBLIC_QRIS_STATIC di .env untuk QRIS dinamis.</div>}

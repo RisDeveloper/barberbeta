@@ -54,7 +54,7 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
     {sel && (<div className="attModal" role="dialog" aria-modal="true" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="attModalCard">
         {res ? (<>
-          <div style={{ background: "#C4EED0", color: "#0D652D", borderRadius: 16, padding: 16 }}>
+          <div style={{ background: "var(--ok-bg, #C4EED0)", color: "var(--ok-fg, #0D652D)", borderRadius: 16, padding: 16 }}>
             <h2 style={{ margin: 0, color: "inherit" }}>{res.name}</h2>
             <div style={{ fontSize: 20, fontWeight: 600, marginTop: 6 }}>{res.state}</div>
             <div>{res.notice}</div>

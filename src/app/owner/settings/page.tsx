@@ -5,7 +5,7 @@ export default async function Settings() {
   const SF = ({ s }: { s?: any }) => (<form action={saveService} className="fr">{s && <input type="hidden" name="id" value={s.id} />}<F l="Nama" n="name" d={s?.name} r /><F l="Harga (Rp)" n="priceRp" t="number" d={s?.priceRp} r /><F l="Deskripsi" n="description" d={s?.description} /><F l="Cabang" n="branchId" d={s?.branchId} o={B} />
     {s && <label><input type="checkbox" name="active" defaultChecked={s.active} /> Aktif</label>}<button className="btn s">Simpan</button></form>);
   return (<><h1>Pengaturan Sistem</h1><div className="card" style={{ marginBottom: 16 }}><h2>Logo portal pemilik</h2>
-    <p style={{ margin: "0 0 12px", fontSize: 13, color: "#5F6368" }}>Logo tampil di pojok kiri atas portal pemilik.</p>
+    <p style={{ margin: "0 0 12px", fontSize: 13, color: "var(--muted, #5F6368)" }}>Logo tampil di pojok kiri atas portal pemilik.</p>
     <form action={saveOwnerLogo} className="fr"><LogoField current={u.logoUrl} /><button className="btn s">Simpan logo</button></form></div>
     <div className="card" style={{ marginBottom: 16 }}><h2>Tambah layanan</h2><SF /></div>
     <div className="card" style={{ marginBottom: 16 }}><Tbl head={["Layanan", "Harga", "Cakupan", "Status", ""]} rows={sv.map((s) => [s.name, rp(s.priceRp), bs.find((b) => b.id === s.branchId)?.name ?? "Semua cabang", <span className={"pill " + (s.active ? "ok" : "mute")}>{s.active ? "Aktif" : "Nonaktif"}</span>, <details><summary>Ubah</summary><SF s={s} /></details>])} /></div>
