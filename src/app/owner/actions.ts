@@ -84,7 +84,24 @@ export async function deleteUser(fd: FormData) {
 export async function saveService(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
   const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
-  const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data }); await audit(o.id, "SERVICE_SAVE", "Service", s.id, data); done();
+  const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data });
+  // per-employee commission overrides
+  if (d.id) {
+    const emps = await prisma.user.findMany({ where: { role: "EMPLOYEE", deletedAt: null } });
+    for (const e of emps) {
+      const raw = fd.get(`comm_${e.id}`);
+      const val = raw === null ? null : String(raw).trim();
+      if (val === "" || val === null) {
+        await prisma.serviceCommission.deleteMany({ where: { serviceId: s.id, userId: e.id } });
+      } else {
+        const n = Number(val);
+        if (Number.isInteger(n) && n >= 0) {
+          await prisma.serviceCommission.upsert({ where: { serviceId_userId: { serviceId: s.id, userId: e.id } }, create: { serviceId: s.id, userId: e.id, commissionRp: n }, update: { commissionRp: n } });
+        }
+      }
+    }
+  }
+  await audit(o.id, "SERVICE_SAVE", "Service", s.id, data); done();
 }
 const bp = (s: string) => { const m = s.trim().match(/^(\d{1,3})(?:\.(\d{1,2}))?$/); if (!m) throw new HttpError(400, "Persentase tidak valid"); return +m[1] * 100 + +((m[2] ?? "").padEnd(2, "0") || 0); }; // "2.5" -> 250, integer only
 export async function saveRule(fd: FormData) {

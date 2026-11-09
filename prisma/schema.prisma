@@ -78,6 +78,7 @@ model User {
   cashierTx   Transaction[]    @relation("cashier")
   artistTx    Transaction[]    @relation("artist")
   commissions Commission[]
+  serviceCommissions ServiceCommission[]
   rules       CommissionRule[]
   expenses    ExpenseRecord[]  @relation("employeePay")
 
@@ -134,8 +135,20 @@ model Service {
   active       Boolean       @default(true)
   deletedAt    DateTime?
   transactions Transaction[]
+  serviceCommissions ServiceCommission[]
   @@index([branchId, deletedAt])
 }
+model ServiceCommission {
+  id           String  @id @default(cuid())
+  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId    String
+  user         User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  commissionRp Int
+  @@unique([serviceId, userId])
+  @@index([serviceId])
+}
+
 model Transaction {
   id             String      @id @default(cuid())
   publicId       String      @unique

@@ -22,9 +22,11 @@ export const POST = (req: Request) => handle(async () => {
       idempotencyKey: b.idempotencyKey, branchId, cashierId: user.id, artistId: artist.id, serviceId: service.id, serviceName: service.name,
       priceRp: service.priceRp, discountRp: b.discountRp, totalRp, cashReceivedRp: b.cashReceivedRp, changeRp: b.cashReceivedRp - totalRp, paymentMethod: b.paymentMethod,
       customerName: b.customerName, status: "COMPLETED" } });
-    // komisi karyawan: pakai komisi per-layanan jika diisi, fallback ke aturan komisi
-    if (service.commissionRp > 0) {
-      await db.commission.create({ data: { transactionId: created.id, userId: artist.id, ruleId: null, amountRp: service.commissionRp } });
+    // komisi karyawan: pakai override per-karyawan jika ada, lalu komisi per-layanan, fallback ke aturan komisi
+    const override = await db.serviceCommission.findUnique({ where: { serviceId_userId: { serviceId: b.serviceId, userId: artist.id } } });
+    const empCommission = override?.commissionRp ?? service.commissionRp;
+    if (empCommission > 0) {
+      await db.commission.create({ data: { transactionId: created.id, userId: artist.id, ruleId: null, amountRp: empCommission } });
     } else {
       const c = await commissionFor(db, artist.id, "EMPLOYEE", branchId, totalRp, now);
       if (c) await db.commission.create({ data: { transactionId: created.id, userId: artist.id, ruleId: c.ruleId, amountRp: c.amountRp } });
