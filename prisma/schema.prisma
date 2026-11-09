@@ -59,8 +59,8 @@ model Branch {
   incomes       IncomeRecord[]
   expenses      ExpenseRecord[]
   rules         CommissionRule[]
+  @@index([deletedAt])
 }
-
 model User {
   id          String   @id @default(cuid())
   email       String   @unique
@@ -134,8 +134,8 @@ model Service {
   active       Boolean       @default(true)
   deletedAt    DateTime?
   transactions Transaction[]
+  @@index([branchId, deletedAt])
 }
-
 model Transaction {
   id             String      @id @default(cuid())
   publicId       String      @unique
@@ -180,8 +180,8 @@ model CommissionRule {
   effectiveTo   DateTime?
   active        Boolean      @default(true)
   commissions   Commission[]
+  @@index([branchId, userId, active])
 }
-
 model Commission {
   id            String         @id @default(cuid())
   transaction   Transaction    @relation(fields: [transactionId], references: [id])
@@ -206,8 +206,8 @@ model AuditLog {
   entityId  String
   meta      Json?
   createdAt DateTime @default(now())
+  @@index([entity, createdAt])
 }
-
 model IncomeRecord {
   id            String    @id @default(cuid())
   date          DateTime
@@ -224,6 +224,7 @@ model IncomeRecord {
   createdAt     DateTime  @default(now())
 
   @@index([date])
+  @@index([branchId, date])
 }
 
 model ExpenseRecord {
@@ -245,4 +246,5 @@ model ExpenseRecord {
 
   @@index([date])
   @@index([userId, date])
+  @@index([branchId, date])
 }

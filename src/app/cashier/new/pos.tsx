@@ -1,5 +1,4 @@
 "use client";
-import QRCode from "qrcode";
 import { useEffect, useRef, useState } from "react";
 import { buildQris } from "@/lib/qris";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
@@ -20,7 +19,7 @@ export default function POS() {
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
-  useEffect(() => { if (qrisPayload) QRCode.toDataURL(qrisPayload, { scale: 5, margin: 4 }).then(setQrDataUrl); else setQrDataUrl(""); }, [qrisPayload]);
+  useEffect(() => { if (!qrisPayload) { setQrDataUrl(""); return; } let cancelled = false; (async () => { const { default: QRCode } = await import("qrcode"); const url = await QRCode.toDataURL(qrisPayload, { scale: 5, margin: 4 }); if (!cancelled) setQrDataUrl(url); })(); return () => { cancelled = true; }; }, [qrisPayload]);
   const shown = artists.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (!onlyAvail || a.available));
   useEffect(() => { if (pay === "qris") setCash(total); }, [pay, total]);
   async function confirm() {

@@ -2,8 +2,9 @@ import { prisma } from "@/lib/db"; import { ctx } from "@/lib/admin"; import { r
 export default async function Analytics({ searchParams: sp }: { searchParams: SP }) {
   const { tz, branchId } = await ctx(); const { gte, lt } = resolveRange(sp, tz, "week"), len = +lt - +gte;
   const where = (a: Date, b: Date) => ({ branchId, status: "COMPLETED" as const, createdAt: { gte: a, lt: b } });
-  const [rows, prev] = await Promise.all([prisma.transaction.findMany({ where: where(gte, lt), select: { createdAt: true, totalRp: true }, take: 20000 }),
-    prisma.transaction.aggregate({ where: where(new Date(+gte - len), gte), _sum: { totalRp: true } })]);
+  const rows: { createdAt: Date; totalRp: number }[] = []; const PAGE = 1000; let skip = 0;
+  while (true) { const batch = await prisma.transaction.findMany({ where: where(gte, lt), select: { createdAt: true, totalRp: true }, take: PAGE, skip }); rows.push(...batch); if (batch.length < PAGE) break; skip += PAGE; }
+  const prev = await prisma.transaction.aggregate({ where: where(new Date(+gte - len), gte), _sum: { totalRp: true } });
   const days = Array.from({ length: Math.min(92, Math.round(len / 86400000)) }, (_, i) => ({ k: localParts(new Date(+gte + i * 86400000), tz).date, v: 0 }));
   for (const r of rows) { const d = days.find((x) => x.k === localParts(r.createdAt, tz).date); if (d) d.v += r.totalRp; }
   const cur = rows.reduce((a, r) => a + r.totalRp, 0), old = prev._sum.totalRp ?? 0, max = Math.max(1, ...days.map((d) => d.v));
