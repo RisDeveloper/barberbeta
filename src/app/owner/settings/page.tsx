@@ -4,7 +4,7 @@ export default async function Settings() {
   const B: [string, string][] = [["", "Semua cabang"], ...bs.map((b) => [b.id, b.name] as [string, string])];
   const SF = ({ s }: { s?: any }) => {
     const overrides = Object.fromEntries(comms.filter((c: any) => c.serviceId === s?.id).map((c: any) => [c.userId, c.commissionRp]));
-    return (<form action={saveService} className="fr">{s && <input type="hidden" name="id" value={s.id} />}<F l="Nama" n="name" d={s?.name} r /><F l="Harga (Rp)" n="priceRp" t="number" d={s?.priceRp} r /><F l="Komisi dasar (Rp)" n="commissionRp" t="number" d={s?.commissionRp ?? 0} /><F l="Cabang" n="branchId" d={s?.branchId} o={B} />
+    return (<form action={saveService} className="fr">{s && <input type="hidden" name="id" value={s.id} />}<F l="Nama layanan" n="name" d={s?.name} r /><F l="Harga (Rp)" n="priceRp" t="number" d={s?.priceRp} r /><F l="Komisi dasar (Rp)" n="commissionRp" t="number" d={s?.commissionRp ?? 0} /><F l="Cabang" n="branchId" d={s?.branchId} o={B} />
       {s && emps.length > 0 && (<div style={{ flex: "1 1 100%" }}>
         <div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Komisi per karyawan (kosong = pakai komisi dasar)</div>
         {emps.map((e: any) => (<div key={e.id} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
