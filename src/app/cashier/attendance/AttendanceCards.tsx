@@ -67,7 +67,7 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
             <div className="attPSub">Klik tombol untuk absen pulang</div></div></div>
           <div style={{ display: "flex", justifyContent: "center", margin: "16px 0" }}>
             <button type="button" onClick={() => doCheckout(sel)} disabled={busy}
-              style={{ width: 120, height: 120, borderRadius: "50%", border: 0, background: busy ? "#E8F0FE" : "#1A73E8", color: busy ? "#1A73E8" : "#fff", fontSize: 16, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", userSelect: "none" }}>
+              style={{ width: 120, height: 120, borderRadius: "50%", border: 0, background: busy ? "#FFF3C4" : "#FED950", color: busy ? "#7A5C00" : "#202124", fontSize: 16, fontWeight: 600, cursor: busy ? "not-allowed" : "pointer", userSelect: "none" }}>
               {busy ? "..." : "Pulang"}
             </button>
           </div>
