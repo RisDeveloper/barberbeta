@@ -28,6 +28,21 @@ export async function saveBranch(fd: FormData) {
   const b = d.id ? await prisma.branch.update({ where: { id: d.id }, data }) : await prisma.branch.create({ data });
   await audit(o.id, d.id ? "BRANCH_UPDATE" : "BRANCH_CREATE", "Branch", b.id, data); done();
 }
+export async function deleteBranch(fd: FormData) {
+  const o = await me(), id = String(fd.get("id"));
+  const b = await prisma.branch.findFirst({ where: { id, deletedAt: null } });
+  if (!b) throw new HttpError(404, "Cabang tidak ditemukan");
+  const now = new Date();
+  // soft delete: history (transactions, attendance, finance) stays intact
+  await prisma.$transaction([
+    prisma.branch.update({ where: { id }, data: { deletedAt: now, active: false } }),
+    prisma.user.updateMany({ where: { branchId: id, deletedAt: null }, data: { active: false } }),
+    prisma.session.deleteMany({ where: { user: { branchId: id } } }),
+    prisma.service.updateMany({ where: { branchId: id, deletedAt: null }, data: { deletedAt: now, active: false } }),
+    prisma.device.updateMany({ where: { branchId: id }, data: { active: false } }),
+  ]);
+  await audit(o.id, "BRANCH_DELETE", "Branch", id, { name: b.name }); done();
+}
 export async function assignAdmin(fd: FormData) {
   const o = await me(), d = get(z.object({ userId: z.string(), branchId: z.string() }), fd); await adminTaken(d.branchId, d.userId);
   await prisma.user.update({ where: { id: d.userId, role: "ADMIN" }, data: { branchId: d.branchId } }); await prisma.session.deleteMany({ where: { userId: d.userId } }); await audit(o.id, "ADMIN_ASSIGN", "User", d.userId, d); done();
