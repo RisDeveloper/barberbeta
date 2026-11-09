@@ -62,6 +62,25 @@ export async function resetPin(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);
   await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); done();
 }
+export async function deleteService(fd: FormData) {
+  const o = await me(), id = String(fd.get("id"));
+  const s = await prisma.service.findFirst({ where: { id, deletedAt: null } });
+  if (!s) throw new HttpError(404, "Layanan tidak ditemukan");
+  await prisma.service.update({ where: { id }, data: { deletedAt: new Date(), active: false } });
+  await audit(o.id, "SERVICE_DELETE", "Service", id, { name: s.name }); done();
+}
+export async function deleteUser(fd: FormData) {
+  const o = await me(), id = String(fd.get("id"));
+  const u = await prisma.user.findFirst({ where: { id, deletedAt: null } });
+  if (!u) throw new HttpError(404, "Karyawan tidak ditemukan");
+  if (u.id === o.id) throw new HttpError(400, "Tidak dapat menghapus akun Anda sendiri");
+  if (u.role === "OWNER") throw new HttpError(403, "Tidak dapat menghapus akun pemilik");
+  await prisma.$transaction([
+    prisma.user.update({ where: { id }, data: { deletedAt: new Date(), active: false } }),
+    prisma.session.deleteMany({ where: { userId: id } }),
+  ]);
+  await audit(o.id, "USER_DELETE", "User", id, { name: u.name, role: u.role }); done();
+}
 export async function saveService(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
   const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
