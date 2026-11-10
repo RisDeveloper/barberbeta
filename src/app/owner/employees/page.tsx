@@ -44,9 +44,9 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
       return (
         <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
           <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
-          <label style={{ fontSize: 13, cursor: "pointer", padding: "4px 8px", borderRadius: 6, border: "1px solid var(--muted, #DADCE0)" }}><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
+          <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
           {shifts.map((sh: any) => (
-            <label key={sh.id} style={{ fontSize: 13, cursor: "pointer", padding: "4px 8px", borderRadius: 6, border: "1px solid var(--muted, #DADCE0)" }}><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
+            <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
           ))}
           <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam masuk</span>
           <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={inVal} />
