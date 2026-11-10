@@ -63,8 +63,16 @@ export async function assignAdmin(fd: FormData) {
 export async function createUser(fd: FormData) {
   const o = await me(), d = get(z.object({ name: z.string().min(2), email: z.string().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/), role: ROLE, branchId: z.string().min(1) }), fd);
   if (d.role === "ADMIN") await adminTaken(d.branchId);
+  const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
+  const shiftEndRaw = String(fd.get("shiftEnd") ?? "").trim();
+  const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
+  const mealRaw = String(fd.get("mealAllowanceRp") ?? "").trim();
+  const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
+  const shiftEndMin = shiftEndRaw && /^\d{2}:\d{2}$/.test(shiftEndRaw) ? hhmm(shiftEndRaw) : null;
+  const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
+  const mealAllowanceRp = mealRaw ? parseInt(mealRaw, 10) : 0;
   const workDays = [0,1,2,3,4,5,6].filter((i) => fd.get(`wd_${i}`) === "on").join(",");
-  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), workDays: workDays || "0,1,2,3,4,5,6" } });
+  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), shiftStartMin, shiftEndMin, lateGraceMin, mealAllowanceRp, workDays: workDays || "0,1,2,3,4,5,6" } });
   const shiftIds = [...fd.keys()].filter((k) => k.startsWith("shift_"));
   for (const sid of shiftIds) { if (fd.get(sid) === "on") await prisma.userShift.create({ data: { userId: u.id, shiftId: sid.replace("shift_", "") } }).catch(() => {}); }
   await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
@@ -73,8 +81,16 @@ export async function updateUser(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), name: z.string().min(2), role: ROLE, branchId: z.string().min(1) }), fd), active = fd.get("active") === "on";
   if (d.id === o.id) throw new HttpError(400, "Tidak dapat mengubah akun Anda sendiri di sini");
   if (d.role === "ADMIN" && active) await adminTaken(d.branchId, d.id);
+  const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
+  const shiftEndRaw = String(fd.get("shiftEnd") ?? "").trim();
+  const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
+  const mealRaw = String(fd.get("mealAllowanceRp") ?? "").trim();
+  const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
+  const shiftEndMin = shiftEndRaw && /^\d{2}:\d{2}$/.test(shiftEndRaw) ? hhmm(shiftEndRaw) : null;
+  const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
+  const mealAllowanceRp = mealRaw ? parseInt(mealRaw, 10) : 0;
   const workDays = [0,1,2,3,4,5,6].filter((i) => fd.get(`wd_${i}`) === "on").join(",");
-  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, workDays: workDays || "0,1,2,3,4,5,6" } });
+  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, shiftStartMin, shiftEndMin, lateGraceMin, mealAllowanceRp, workDays: workDays || "0,1,2,3,4,5,6" } });
   // sync shifts
   await prisma.userShift.deleteMany({ where: { userId: d.id } });
   const shiftIds = [...fd.keys()].filter((k) => k.startsWith("shift_"));
