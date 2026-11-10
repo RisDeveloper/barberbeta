@@ -240,7 +240,8 @@ html[data-theme="dark"] .side{background:#1B1F24;border-color:#3C4043}
 html[data-theme="dark"] .nav a:hover,html[data-theme="dark"] .nav button:hover{background:transparent;color:#FED950}
 html[data-theme="dark"] .nav a.on{background:transparent;color:#FED950}
 }
-.shiftBtn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;border:1px solid #DADCE0;background:#F1F3F4;color:#5F6368;cursor:pointer;font-size:13px;user-select:none}
+.shiftBtn{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border-radius:8px;border:1px solid #DADCE0;background:#F1F3F4;color:#5F6368;cursor:pointer;font-size:13px;user-select:none;position:relative}
+.shiftBtn input{position:absolute;opacity:0;width:0;height:0;margin:0;padding:0;border:0}
 .shiftBtn:has(input:checked){background:#1A73E8;color:#fff;border-color:#1A73E8}
 html[data-theme="dark"] .shiftBtn{background:#2A2E33;border-color:#3C4043;color:#BDC1C6}
 html[data-theme="dark"] .shiftBtn:has(input:checked){background:#1A73E8;color:#fff;border-color:#1A73E8}
