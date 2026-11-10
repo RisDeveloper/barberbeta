@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 type E = { id: string; name: string; email: string; state: string; inAt: string | null; outAt: string | null };
-type R = { name: string; branch: string; state: string; notice: string; status?: string; checkInAt: string; checkOutAt: string | null };
+type R = { name: string; branch: string; state: string; notice: string; status?: string; checkInAt: string; checkOutAt: string | null; mealAllowanceRp?: number };
 const clean = (n: string) => n.replace(/^\[.*?\]\s*/, "").trim() || n;
 const initial = (n: string) => (clean(n)[0] ?? "B").toUpperCase();
 export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { employees: E[]; tz?: string }) {
@@ -60,6 +60,7 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
             <div>{res.notice}</div>
             <div className="row" style={{ marginTop: 8 }}><span>Masuk</span><b>{hm(res.checkInAt)}</b></div>
             <div className="row"><span>Keluar</span><b>{hm(res.checkOutAt)}</b></div>
+            <div className="row"><span>Uang makan</span><b>{res.mealAllowanceRp ? "Rp" + res.mealAllowanceRp.toLocaleString("id-ID") : (res.status === "LATE" ? "Hangus (terlambat)" : "Rp0")}</b></div>
           </div>
           <button className="btn" style={{ marginTop: 12 }} onClick={close}>Selesai</button>
         </>) : isCheckedIn ? (<>

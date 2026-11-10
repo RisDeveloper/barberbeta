@@ -72,6 +72,7 @@ model User {
   logoUrl     String?  // owner portal logo (data URL, small square image)
   shiftStartMin Int?   // override branch shift start (minutes after midnight); null = use branch default
   lateGraceMin  Int?   // override branch late grace (minutes); null = use branch default
+  mealAllowanceRp Int @default(0) // uang makan per shift; hangus jika terlambat
   active      Boolean  @default(true)
   deletedAt   DateTime?
   sessions    Session[]
@@ -122,6 +123,7 @@ model AttendanceRecord {
   checkInAt   DateTime
   checkOutAt  DateTime?
   status      AttStatus
+  mealAllowanceRp Int @default(0)
 
   @@unique([userId, workDate])
   @@index([branchId, workDate])

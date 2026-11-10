@@ -19,14 +19,14 @@ export const POST = (req: Request) => handle(async () => {
   if (!emp || emp.role !== "EMPLOYEE" || !emp.active || emp.deletedAt || emp.branchId !== cashier.branchId) throw new HttpError(403, "Karyawan tidak valid untuk cabang ini");
   const now = new Date(), { date, minutes } = local(now, branch.timezone);
   const rec = await prisma.attendanceRecord.findUnique({ where: { userId_workDate: { userId: emp.id, workDate: date } } });
-  const reply = (r: { checkInAt: Date; checkOutAt: Date | null; status: string }, state: string, notice: string) =>
-    Response.json({ name: emp.name, branch: branch.name, state, notice, status: r.status, checkInAt: r.checkInAt, checkOutAt: r.checkOutAt });
+  const reply = (r: { checkInAt: Date; checkOutAt: Date | null; status: string; mealAllowanceRp?: number }, state: string, notice: string) =>
+    Response.json({ name: emp.name, branch: branch.name, state, notice, status: r.status, checkInAt: r.checkInAt, checkOutAt: r.checkOutAt, mealAllowanceRp: r.mealAllowanceRp ?? 0 });
   if (!rec) {
     if (!pin) throw new HttpError(400, "PIN wajib untuk absen masuk");
     const ok = await bcrypt.compare(pin, emp.pinHash);
     if (!ok) throw new HttpError(401, "Email atau PIN salah");
     const late = minutes > (emp.shiftStartMin ?? branch.shiftStartMin) + (emp.lateGraceMin ?? branch.lateGraceMin);
-    const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT" } });
+    const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : (emp.mealAllowanceRp ?? 0) } });
     return reply(r, "Sudah Absen Datang", "Absen masuk tercatat");
   }
   if (rec.checkOutAt) return reply(rec, "Sudah Absen Pulang", "Sudah absen keluar hari ini");
