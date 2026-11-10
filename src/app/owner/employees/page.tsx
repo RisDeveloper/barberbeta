@@ -34,13 +34,18 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => {
       const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, string> : {};
       const cur = sched[String(i)] ?? "";
+      const selShift = shifts.find((sh: any) => sh.id === cur);
       return (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
           <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
           <label style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} /> Libur</label>
           {shifts.map((sh: any) => (
-            <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} /> {sh.name} ({String(Math.floor(sh.startMin/60)).padStart(2,"0")}:{String(sh.startMin%60).padStart(2,"0")}-{String(Math.floor(sh.endMin/60)).padStart(2,"0")}:{String(sh.endMin%60).padStart(2,"0")})</label>
+            <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} /> {sh.name}</label>
           ))}
+          <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 4 }}>
+            Jam masuk: <b>{selShift ? String(Math.floor(selShift.startMin/60)).padStart(2,"0") + ":" + String(selShift.startMin%60).padStart(2,"0") : "-"}</b>
+            {"  "}Jam keluar: <b>{selShift ? String(Math.floor(selShift.endMin/60)).padStart(2,"0") + ":" + String(selShift.endMin%60).padStart(2,"0") : "-"}</b>
+          </span>
         </div>
       );
     })}
