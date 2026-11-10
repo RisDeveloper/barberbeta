@@ -21,7 +21,7 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
       <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
         <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, listStyle: "none" }}>{d} — Libur</summary>
         <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
-          <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked style={{ cursor: "pointer" }} /> Libur</label>
+          <label style={{ fontSize: 12, color: "var(--muted)", cursor: "pointer", padding: "4px 6px" }}><input type="radio" name={`day_${i}`} value="" defaultChecked style={{ cursor: "pointer" }} /> Libur</label>
           {shifts.map((sh: any) => (
             <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
           ))}
@@ -49,7 +49,7 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
         <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
           <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, listStyle: "none" }}>{d} — {summary}</summary>
           <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
-            <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
+            <label style={{ fontSize: 12, color: "var(--muted)", cursor: "pointer", padding: "4px 6px" }}><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
             {shifts.map((sh: any) => (
               <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
             ))}
