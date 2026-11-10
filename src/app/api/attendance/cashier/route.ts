@@ -25,7 +25,7 @@ export const POST = (req: Request) => handle(async () => {
     if (!pin) throw new HttpError(400, "PIN wajib untuk absen masuk");
     const ok = await bcrypt.compare(pin, emp.pinHash);
     if (!ok) throw new HttpError(401, "Email atau PIN salah");
-    const late = minutes > branch.shiftStartMin + branch.lateGraceMin;
+    const late = minutes > (emp.shiftStartMin ?? branch.shiftStartMin) + (emp.lateGraceMin ?? branch.lateGraceMin);
     const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT" } });
     return reply(r, "Sudah Absen Datang", "Absen masuk tercatat");
   }

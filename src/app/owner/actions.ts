@@ -51,13 +51,21 @@ export async function assignAdmin(fd: FormData) {
 export async function createUser(fd: FormData) {
   const o = await me(), d = get(z.object({ name: z.string().min(2), email: z.string().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/), role: ROLE, branchId: z.string().min(1) }), fd);
   if (d.role === "ADMIN") await adminTaken(d.branchId);
-  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12) } }); await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
+  const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
+  const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
+  const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
+  const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
+  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), shiftStartMin, lateGraceMin } }); await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
 }
 export async function updateUser(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), name: z.string().min(2), role: ROLE, branchId: z.string().min(1) }), fd), active = fd.get("active") === "on";
   if (d.id === o.id) throw new HttpError(400, "Tidak dapat mengubah akun Anda sendiri di sini");
   if (d.role === "ADMIN" && active) await adminTaken(d.branchId, d.id);
-  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); toast("ok", "Berhasil"); done();
+  const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
+  const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
+  const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
+  const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
+  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, shiftStartMin, lateGraceMin } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); toast("ok", "Berhasil"); done();
 }
 export async function resetPin(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);

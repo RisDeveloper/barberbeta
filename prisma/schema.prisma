@@ -70,6 +70,8 @@ model User {
   branch      Branch?  @relation(fields: [branchId], references: [id])
   branchId    String? // null only for OWNER
   logoUrl     String?  // owner portal logo (data URL, small square image)
+  shiftStartMin Int?   // override branch shift start (minutes after midnight); null = use branch default
+  lateGraceMin  Int?   // override branch late grace (minutes); null = use branch default
   active      Boolean  @default(true)
   deletedAt   DateTime?
   sessions    Session[]
