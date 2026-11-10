@@ -52,6 +52,7 @@ model Branch {
   active        Boolean  @default(true)
   deletedAt     DateTime?
   users         User[]
+  shifts        Shift[]
   services      Service[]
   transactions  Transaction[]
   attendance    AttendanceRecord[]
@@ -61,6 +62,32 @@ model Branch {
   rules         CommissionRule[]
   @@index([deletedAt])
 }
+model Shift {
+  id              String     @id @default(cuid())
+  branch          Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  branchId        String
+  name            String     // "Pagi", "Siang", "Malam"
+  startMin        Int        // minutes after midnight
+  endMin          Int        // minutes after midnight
+  graceMin        Int        @default(10)
+  mealAllowanceRp Int        @default(0)
+  active          Boolean    @default(true)
+  users           UserShift[]
+  @@unique([branchId, name])
+  @@index([branchId])
+}
+
+model UserShift {
+  id      String @id @default(cuid())
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  shift   Shift  @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  shiftId String
+  @@unique([userId, shiftId])
+  @@index([userId])
+  @@index([shiftId])
+}
+
 model User {
   id          String   @id @default(cuid())
   email       String   @unique
@@ -70,11 +97,12 @@ model User {
   branch      Branch?  @relation(fields: [branchId], references: [id])
   branchId    String? // null only for OWNER
   logoUrl     String?  // owner portal logo (data URL, small square image)
-  shiftStartMin Int?   // override branch shift start (minutes after midnight); null = use branch default
-  shiftEndMin   Int?   // override branch shift end (minutes after midnight); null = use branch default
-  lateGraceMin  Int?   // override branch late grace (minutes); null = use branch default
+  shiftStartMin Int?   // override branch shift start (minutes after midnight); null = use branch default (legacy)
+  shiftEndMin   Int?   // override branch shift end (minutes after midnight); null = use branch default (legacy)
+  lateGraceMin  Int?   // override branch late grace (minutes); null = use branch default (legacy)
   workDays      String @default("0,1,2,3,4,5,6") // days of week the employee works (0=Sun..6=Sat)
-  mealAllowanceRp Int @default(0) // uang makan per shift; hangus jika terlambat
+  mealAllowanceRp Int @default(0) // uang makan per shift; hangus jika terlambat (legacy/fallback)
+  shifts        UserShift[]
   active      Boolean  @default(true)
   deletedAt   DateTime?
   sessions    Session[]
