@@ -49,6 +49,8 @@ model Branch {
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight
   lateGraceMin  Int      @default(10)
+  openDays      String   @default("0,1,2,3,4,5,6") // days of week open (0=Sun..6=Sat)
+  closeTimeMin  Int      @default(1080) // closing time (minutes after midnight)
   active        Boolean  @default(true)
   deletedAt     DateTime?
   users         User[]
@@ -73,6 +75,8 @@ model User {
   shiftStartMin Int?   // override branch shift start (minutes after midnight); null = use branch default
   lateGraceMin  Int?   // override branch late grace (minutes); null = use branch default
   mealAllowanceRp Int @default(0) // uang makan per shift; hangus jika terlambat
+  shiftRotation Json?   // array of {startMin, graceMin, mealAllowanceRp, days} for auto-rotation
+  shiftRotationStart DateTime? // anchor date for rotation (day 0)
   active      Boolean  @default(true)
   deletedAt   DateTime?
   sessions    Session[]
