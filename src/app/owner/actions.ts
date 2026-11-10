@@ -117,15 +117,19 @@ export async function setCommission(fd: FormData) {
   const r = await prisma.commission.updateMany({ where: { id: d.id, status: d.to === "APPROVED" ? "PENDING" : "APPROVED" }, data: { status: d.to } }); if (r.count) await audit(o.id, "COMMISSION_" + d.to, "Commission", d.id); toast("ok", "Berhasil"); done();
 }
 const model = (k: string) => (prisma as any)[k === "income" ? "incomeRecord" : "expenseRecord"];
-const REC = { kind: z.enum(["income", "expense"]), date: z.string(), category: z.string().min(2), description: z.string().min(2), amountRp: pos, branchId: os, paymentMethod: z.string(), attachment: os };
+const REC = { kind: z.enum(["income", "expense"]), date: z.string(), category: z.string().min(2), description: z.string().min(2), amountRp: pos, branchId: os, paymentMethod: z.string(), attachment: os, userId: os };
 export async function addRecord(fd: FormData) {
-  const o = await me(), { kind, date, ...d } = get(z.object(REC), fd); const r = await model(kind).create({ data: { ...d, date: dayStart(date, TZ), createdById: o.id } }); await audit(o.id, "FIN_CREATE", kind, r.id, d); toast("ok", "Berhasil"); done();
+  const o = await me(), { kind, date, ...d } = get(z.object(REC), fd);
+  const payCats = ["Kasbon", "Insentif", "Bonus"];
+  const data: any = { ...d, date: dayStart(date, TZ), createdById: o.id, userId: (kind === "expense" && payCats.includes(d.category)) ? (d.userId ?? null) : null };
+  const r = await model(kind).create({ data }); await audit(o.id, "FIN_CREATE", kind, r.id, data); toast("ok", "Berhasil"); done();
 }
 export async function editRecord(fd: FormData) {
   const o = await me(), raw = get(z.object({ id: z.string(), reason: z.string().min(3), ...REC }), fd) as any;
   const { id, reason, kind, date, ...data } = raw, before = await model(kind).findUnique({ where: { id } });
   if (!before || before.voidedAt) throw new HttpError(400, "Catatan tidak dapat diubah");
-  const clean = { ...data, branchId: data.branchId ?? null, attachment: data.attachment ?? null, date: dayStart(date, TZ) };
+  const payCats = ["Kasbon", "Insentif", "Bonus"];
+  const clean = { ...data, branchId: data.branchId ?? null, attachment: data.attachment ?? null, date: dayStart(date, TZ), userId: (kind === "expense" && payCats.includes(data.category)) ? (data.userId ?? null) : null };
   await model(kind).update({ where: { id }, data: clean }); await audit(o.id, "FIN_EDIT", kind, id, { reason, before, after: clean }); toast("ok", "Berhasil"); done();
 }
 export async function voidRecord(fd: FormData) {
