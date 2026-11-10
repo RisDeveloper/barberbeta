@@ -1,15 +1,14 @@
-import { guard } from "@/lib/guard"; import { prisma } from "@/lib/db"; import { stats } from "@/lib/earnings"; import { todayState } from "@/lib/attendance"; import { startOfLocalDay, startOfLocalWeek, hm, rp } from "@/lib/time";
+import { guard } from "@/lib/guard"; import { prisma } from "@/lib/db"; import { stats } from "@/lib/earnings"; import { todayState } from "@/lib/attendance"; import { startOfLocalDay, startOfLocalMonth, hm, rp } from "@/lib/time";
 export default async function Dashboard() {
   const u = await guard("EMPLOYEE"); const b = await prisma.branch.findUniqueOrThrow({ where: { id: u.branchId } });
-  const day0 = startOfLocalDay(b.timezone), week0 = startOfLocalWeek(b.timezone), tomorrow = new Date(+day0 + 86400000);
-  const [t, w, todayPay, weekPay] = await Promise.all([stats(u.id, day0), stats(u.id, week0),
-    prisma.expenseRecord.groupBy({ by: ["category"], where: { userId: u.id, voidedAt: null, category: { in: ["Kasbon", "Insentif", "Bonus"] }, date: { gte: day0, lt: tomorrow } }, _sum: { amountRp: true } }),
-    prisma.expenseRecord.groupBy({ by: ["category"], where: { userId: u.id, voidedAt: null, category: { in: ["Kasbon", "Insentif", "Bonus"] }, date: { gte: week0 } }, _sum: { amountRp: true } })]);
+  const day0 = startOfLocalDay(b.timezone), month0 = startOfLocalMonth(b.timezone), tomorrow = new Date(+day0 + 86400000);
+  const [t, m, monthPay, allKasbon] = await Promise.all([stats(u.id, day0), stats(u.id, month0),
+    prisma.expenseRecord.groupBy({ by: ["category"], where: { userId: u.id, voidedAt: null, category: { in: ["Kasbon", "Insentif", "Bonus"] }, date: { gte: month0 } }, _sum: { amountRp: true } }),
+    prisma.expenseRecord.aggregate({ where: { userId: u.id, voidedAt: null, category: "Kasbon" }, _sum: { amountRp: true } })]);
   const payAmt = (rows: any[], k: string) => rows.find((r) => r.category === k)?._sum.amountRp ?? 0;
-  const todayIns = payAmt(todayPay, "Insentif"), todayBon = payAmt(todayPay, "Bonus"), todayKas = payAmt(todayPay, "Kasbon");
-  const weekIns = payAmt(weekPay, "Insentif"), weekBon = payAmt(weekPay, "Bonus"), weekKas = payAmt(weekPay, "Kasbon");
-  const todayNet = t.earningsRp + todayIns + todayBon - todayKas;
-  const weekNet = w.earningsRp + weekIns + weekBon - weekKas;
+  const monthIns = payAmt(monthPay, "Insentif"), monthBon = payAmt(monthPay, "Bonus"), monthKas = payAmt(monthPay, "Kasbon");
+  const totalKasbon = allKasbon._sum.amountRp ?? 0;
+  const monthNet = m.earningsRp + monthIns + monthBon - monthKas;
   const att = await todayState(u.id, b.timezone);
   const today = new Date().toLocaleDateString("id-ID", { timeZone: b.timezone, weekday: "long", day: "numeric", month: "long", year: "numeric" });
   const displayName = u.name.replace(/^\[.*?\]\s*/, "").trim() || u.name;
@@ -46,10 +45,8 @@ export default async function Dashboard() {
     </div>
   </div></div>
     <div className="grid stats">
-      <div className="card stat"><small>Pelanggan hari ini</small><b>{t.customers}</b></div><div className="card stat"><small>Komisi hari ini</small><b>{rp(t.earningsRp)}</b></div>
-      <div className="card stat"><small>Insentif hari ini</small><b>{rp(todayIns)}</b></div><div className="card stat"><small>Bonus hari ini</small><b>{rp(todayBon)}</b></div>
-      <div className="card stat"><small>Kasbon hari ini</small><b>{rp(todayKas)}</b></div><div className="card stat"><small>Bersih hari ini</small><b>{rp(todayNet)}</b></div>
-      <div className="card stat"><small>Pelanggan minggu ini</small><b>{w.customers}</b></div><div className="card stat"><small>Komisi minggu ini</small><b>{rp(w.earningsRp)}</b></div>
-      <div className="card stat"><small>Insentif minggu ini</small><b>{rp(weekIns)}</b></div><div className="card stat"><small>Bonus minggu ini</small><b>{rp(weekBon)}</b></div>
-      <div className="card stat"><small>Kasbon minggu ini</small><b>{rp(weekKas)}</b></div><div className="card stat"><small>Bersih minggu ini</small><b>{rp(weekNet)}</b></div></div></>);
+      <div className="card stat"><small>Komisi hari ini</small><b>{rp(t.earningsRp)}</b></div>
+      <div className="card stat"><small>Kasbon (total)</small><b>{rp(totalKasbon)}</b></div>
+      <div className="card stat"><small>Pendapatan bulan ini</small><b>{rp(m.earningsRp)}</b></div>
+      <div className="card stat"><small>Pendapatan bersih (bulan ini)</small><b>{rp(monthNet)}</b></div></div></>);
 }
