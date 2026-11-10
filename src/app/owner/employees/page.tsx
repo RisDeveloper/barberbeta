@@ -22,8 +22,12 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
         <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
         <label style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value="" defaultChecked /> Libur</label>
         {shifts.map((sh: any) => (
-          <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} /> {sh.name} ({String(Math.floor(sh.startMin/60)).padStart(2,"0")}:{String(sh.startMin%60).padStart(2,"0")}-{String(Math.floor(sh.endMin/60)).padStart(2,"0")}:{String(sh.endMin%60).padStart(2,"0")})</label>
+          <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} /> {sh.name}</label>
         ))}
+        <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam masuk</span>
+        <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
+        <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+        <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
       </div>
     ))}
   </div>
@@ -32,9 +36,11 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
     <Tbl head={["Nama", "Email", "Peran", "Cabang", "Kasbon", "Bersih", "Status", "Kelola"]} rows={us.map((u) => [u.name, u.email, RL.find(([r]) => r === u.role)?.[1], u.branch?.name ?? "—", rp(kasbonOf(u.id)), rp(netOf(u.id)), <span className={"pill " + (u.active ? "ok" : "mute")}>{u.active ? "Aktif" : "Nonaktif"}</span>,
       <><details><summary>Ubah</summary><form action={updateUser} className="fr"><input type="hidden" name="id" value={u.id} /><F l="Nama" n="name" d={u.name} r /><F l="Peran" n="role" d={u.role} o={RL} /><F l="Cabang" n="branchId" d={u.branchId} o={B} />    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (pilih shift per hari, kosong = libur)</div>
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => {
-      const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, string> : {};
-      const cur = sched[String(i)] ?? "";
-      const selShift = shifts.find((sh: any) => sh.id === cur);
+      const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, any> : {};
+      const entry = sched[String(i)];
+      const cur = (entry && typeof entry === "object") ? (entry.shift ?? entry.shiftId ?? "") : (typeof entry === "string" ? entry : "");
+      const inVal = (entry && typeof entry === "object" && entry.in) ? entry.in : (entry && typeof entry === "object" && entry.startMin != null ? `${String(Math.floor(entry.startMin/60)).padStart(2,"0")}:${String(entry.startMin%60).padStart(2,"0")}` : "");
+      const outVal = (entry && typeof entry === "object" && entry.out) ? entry.out : (entry && typeof entry === "object" && entry.endMin != null ? `${String(Math.floor(entry.endMin/60)).padStart(2,"0")}:${String(entry.endMin%60).padStart(2,"0")}` : "");
       return (
         <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
           <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
@@ -42,10 +48,10 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
           {shifts.map((sh: any) => (
             <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} /> {sh.name}</label>
           ))}
-          <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 4 }}>
-            Jam masuk: <b>{selShift ? String(Math.floor(selShift.startMin/60)).padStart(2,"0") + ":" + String(selShift.startMin%60).padStart(2,"0") : "-"}</b>
-            {"  "}Jam keluar: <b>{selShift ? String(Math.floor(selShift.endMin/60)).padStart(2,"0") + ":" + String(selShift.endMin%60).padStart(2,"0") : "-"}</b>
-          </span>
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam masuk</span>
+          <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={inVal} />
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+          <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={outVal} />
         </div>
       );
     })}

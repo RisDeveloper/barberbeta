@@ -63,11 +63,19 @@ export async function assignAdmin(fd: FormData) {
 export async function createUser(fd: FormData) {
   const o = await me(), d = get(z.object({ name: z.string().min(2), email: z.string().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/), role: ROLE, branchId: z.string().min(1) }), fd);
   if (d.role === "ADMIN") await adminTaken(d.branchId);
-  const schedule: Record<string, string> = {};
+  const schedule: Record<string, any> = {};
   const workDays: number[] = [];
   for (let i = 0; i < 7; i++) {
     const v = String(fd.get(`day_${i}`) ?? "").trim();
-    if (v) { schedule[String(i)] = v; workDays.push(i); }
+    if (v) {
+      const inRaw = String(fd.get(`day_${i}_in`) ?? "").trim();
+      const outRaw = String(fd.get(`day_${i}_out`) ?? "").trim();
+      const entry: any = { shift: v };
+      if (inRaw && /^\d{2}:\d{2}$/.test(inRaw)) entry.in = hhmm(inRaw);
+      if (outRaw && /^\d{2}:\d{2}$/.test(outRaw)) entry.out = hhmm(outRaw);
+      schedule[String(i)] = entry;
+      workDays.push(i);
+    }
   }
   const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), workDays: workDays.length ? workDays.join(",") : "0,1,2,3,4,5,6", shiftSchedule: Object.keys(schedule).length ? schedule : Prisma.DbNull } });
   await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
@@ -76,11 +84,19 @@ export async function updateUser(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), name: z.string().min(2), role: ROLE, branchId: z.string().min(1) }), fd), active = fd.get("active") === "on";
   if (d.id === o.id) throw new HttpError(400, "Tidak dapat mengubah akun Anda sendiri di sini");
   if (d.role === "ADMIN" && active) await adminTaken(d.branchId, d.id);
-  const schedule: Record<string, string> = {};
+  const schedule: Record<string, any> = {};
   const workDays: number[] = [];
   for (let i = 0; i < 7; i++) {
     const v = String(fd.get(`day_${i}`) ?? "").trim();
-    if (v) { schedule[String(i)] = v; workDays.push(i); }
+    if (v) {
+      const inRaw = String(fd.get(`day_${i}_in`) ?? "").trim();
+      const outRaw = String(fd.get(`day_${i}_out`) ?? "").trim();
+      const entry: any = { shift: v };
+      if (inRaw && /^\d{2}:\d{2}$/.test(inRaw)) entry.in = hhmm(inRaw);
+      if (outRaw && /^\d{2}:\d{2}$/.test(outRaw)) entry.out = hhmm(outRaw);
+      schedule[String(i)] = entry;
+      workDays.push(i);
+    }
   }
   await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, workDays: workDays.length ? workDays.join(",") : "0,1,2,3,4,5,6", shiftSchedule: Object.keys(schedule).length ? schedule : Prisma.DbNull } });
   await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); toast("ok", "Berhasil"); done();
