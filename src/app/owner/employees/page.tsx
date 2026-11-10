@@ -16,19 +16,21 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
   const bonOf = (id: string) => payAgg.filter((p) => p.userId === id && p.category === "Bonus").reduce((a, p) => a + (p._sum.amountRp ?? 0), 0);
   const netOf = (id: string) => commOf(id) + insOf(id) + bonOf(id) - kasbonOf(id);
   return (<><h1>Manajemen Karyawan</h1><div className="card" style={{ marginBottom: 16 }}><h2>Tambah karyawan</h2><form action={createUser} className="fr"><F l="Nama" n="name" r /><F l="Email" n="email" t="email" r /><F l="PIN (4-8 digit)" n="pin" t="password" r /><F l="Peran" n="role" o={RL} r /><F l="Cabang" n="branchId" o={B} r />
-    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (pilih shift per hari, kosong = libur)</div>
+    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (klik hari untuk atur)</div>
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => (
-      <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
-        <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
-        <label style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value="" defaultChecked /> Libur</label>
-        {shifts.map((sh: any) => (
-          <label key={sh.id} style={{ fontSize: 13 }}><input type="radio" name={`day_${i}`} value={sh.id} /> {sh.name}</label>
-        ))}
-        <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam masuk</span>
-        <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
-        <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
-        <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
-      </div>
+      <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
+        <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, listStyle: "none" }}>{d} — Libur</summary>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
+          <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked style={{ cursor: "pointer" }} /> Libur</label>
+          {shifts.map((sh: any) => (
+            <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
+          ))}
+          <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 8 }}>Jam masuk</span>
+          <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
+          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+          <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
+        </div>
+      </details>
     ))}
   </div>
   <button className="btn s">Tambah</button></form></div>
@@ -39,20 +41,24 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
       const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, any> : {};
       const entry = sched[String(i)];
       const cur = (entry && typeof entry === "object") ? (entry.shift ?? entry.shiftId ?? "") : (typeof entry === "string" ? entry : "");
+      const selShift = shifts.find((sh: any) => sh.id === cur);
       const inVal = (entry && typeof entry === "object" && entry.in) ? entry.in : (entry && typeof entry === "object" && entry.startMin != null ? `${String(Math.floor(entry.startMin/60)).padStart(2,"0")}:${String(entry.startMin%60).padStart(2,"0")}` : "");
       const outVal = (entry && typeof entry === "object" && entry.out) ? entry.out : (entry && typeof entry === "object" && entry.endMin != null ? `${String(Math.floor(entry.endMin/60)).padStart(2,"0")}:${String(entry.endMin%60).padStart(2,"0")}` : "");
+      const summary = cur === "" ? "Libur" : (selShift ? `${selShift.name} (${inVal || String(Math.floor(selShift.startMin/60)).padStart(2,"0")+":"+String(selShift.startMin%60).padStart(2,"0")} - ${outVal || String(Math.floor(selShift.endMin/60)).padStart(2,"0")+":"+String(selShift.endMin%60).padStart(2,"0")})` : "Shift");
       return (
-        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
-          <span style={{ width: 40, fontSize: 13, fontWeight: 600 }}>{d}</span>
-          <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
-          {shifts.map((sh: any) => (
-            <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
-          ))}
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam masuk</span>
-          <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={inVal} />
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
-          <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={outVal} />
-        </div>
+        <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
+          <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, listStyle: "none" }}>{d} — {summary}</summary>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8, flexWrap: "wrap" }}>
+            <label className="shiftBtn"><input type="radio" name={`day_${i}`} value="" defaultChecked={cur === ""} style={{ cursor: "pointer" }} /> Libur</label>
+            {shifts.map((sh: any) => (
+              <label key={sh.id} className="shiftBtn"><input type="radio" name={`day_${i}`} value={sh.id} defaultChecked={cur === sh.id} style={{ cursor: "pointer" }} /> {sh.name}</label>
+            ))}
+            <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 8 }}>Jam masuk</span>
+            <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={inVal} />
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+            <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={outVal} />
+          </div>
+        </details>
       );
     })}
   </div>
