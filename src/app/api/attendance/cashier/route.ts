@@ -28,8 +28,15 @@ export const POST = (req: Request) => handle(async () => {
     if (!pin) throw new HttpError(400, "PIN wajib untuk absen masuk");
     const ok = await bcrypt.compare(pin, emp.pinHash);
     if (!ok) throw new HttpError(401, "Email atau PIN salah");
+    // per-day schedule takes priority
+    const schedule = (emp.shiftSchedule && typeof emp.shiftSchedule === "object") ? emp.shiftSchedule as Record<string, string> : null;
+    const todayShiftId = schedule ? schedule[String(dow)] : null;
     const assigned = (emp.shifts ?? []).map((us: any) => us.shift).filter((s: any) => s && s.active);
-    const matched = assigned.find((s: any) => minutes >= s.startMin && minutes <= s.endMin) ?? assigned[0];
+    let matched: any = null;
+    if (todayShiftId) matched = assigned.find((s: any) => s.id === todayShiftId) ?? null;
+    if (!matched && assigned.length) matched = assigned.find((s: any) => minutes >= s.startMin && minutes <= s.endMin) ?? assigned[0];
+    // if schedule exists but no shift for today => off day
+    if (schedule && !todayShiftId) throw new HttpError(400, "Bukan hari kerja karyawan ini");
     const shiftStart = matched ? matched.startMin : (emp.shiftStartMin ?? branch.shiftStartMin);
     const grace = matched ? matched.graceMin : (emp.lateGraceMin ?? branch.lateGraceMin);
     const meal = matched ? matched.mealAllowanceRp : (emp.mealAllowanceRp ?? 0);
