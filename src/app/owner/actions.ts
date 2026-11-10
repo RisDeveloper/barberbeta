@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod"; import bcrypt from "bcryptjs"; import { revalidatePath } from "next/cache"; import { cookies } from "next/headers";
-import { prisma } from "@/lib/db"; import { Prisma } from "@prisma/client"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
+import { prisma } from "@/lib/db"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
 const toast = (type: "ok" | "err", msg: string) => { try { cookies().set("toast", `${type}:${msg}`, { path: "/", maxAge: 10 }); } catch {} };
 const me = () => requireUser(["OWNER"]);
 const os = z.string().transform((v) => v.trim() || undefined).optional();
@@ -9,19 +9,6 @@ const get = <T extends z.ZodTypeAny>(s: T, fd: FormData) => s.parse(Object.fromE
 const done = () => revalidatePath("/owner", "layout");
 const audit = (actorId: string, action: string, entity: string, entityId: string, meta?: object) => prisma.auditLog.create({ data: { actorId, action, entity, entityId, meta: meta as any } });
 const hhmm = (s: string) => { const [h, m] = s.split(":").map(Number); return h * 60 + m; };
-const parseRot = (raw: string) => {
-  const s = raw.trim(); if (!s) return null;
-  const segs = s.split(";").map((x) => x.trim()).filter(Boolean);
-  const out: any[] = [];
-  for (const seg of segs) {
-    const parts = seg.split(",").map((x) => x.trim());
-    if (parts.length < 4) continue;
-    const [hh, mm] = (parts[0] || "00:00").split(":");
-    const startMin = (parseInt(hh, 10) || 0) * 60 + (parseInt(mm, 10) || 0);
-    out.push({ startMin, graceMin: parseInt(parts[1], 10) || 10, mealAllowanceRp: parseInt(parts[2], 10) || 0, days: parseInt(parts[3], 10) || 1 });
-  }
-  return out.length ? out : null;
-};
 async function adminTaken(branchId: string, except?: string) { if (await prisma.user.findFirst({ where: { role: "ADMIN", branchId, active: true, deletedAt: null, id: { not: except } } })) throw new HttpError(409, "Cabang ini sudah memiliki admin aktif"); }
 const ROLE = z.enum(["ADMIN", "CASHIER", "EMPLOYEE"]);
 const logoOf = (fd: FormData) => {
@@ -36,10 +23,9 @@ export async function saveOwnerLogo(fd: FormData) {
 }
 
 export async function saveBranch(fd: FormData) {
-  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int, closeTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal("")), openDays: z.string().optional() }), fd);
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int }), fd);
   const logo = logoOf(fd);
-  const openDays = (d.openDays ?? "0,1,2,3,4,5,6").trim() || "0,1,2,3,4,5,6";
-  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, openDays, closeTimeMin: d.closeTime ? hhmm(d.closeTime) : 1080, active: fd.get("active") === "on" || !d.id, ...(logo === null ? {} : { logoUrl: logo || null }) };
+  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, active: fd.get("active") === "on" || !d.id, ...(logo === null ? {} : { logoUrl: logo || null }) };
   const b = d.id ? await prisma.branch.update({ where: { id: d.id }, data }) : await prisma.branch.create({ data });
   await audit(o.id, d.id ? "BRANCH_UPDATE" : "BRANCH_CREATE", "Branch", b.id, data); toast("ok", "Berhasil"); done();
 }
@@ -68,14 +54,10 @@ export async function createUser(fd: FormData) {
   const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
   const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
   const mealRaw = String(fd.get("mealAllowanceRp") ?? "").trim();
-  const rotRaw = String(fd.get("shiftRotation") ?? "").trim();
-  const rotStartRaw = String(fd.get("shiftRotationStart") ?? "").trim();
   const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
   const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
   const mealAllowanceRp = mealRaw ? parseInt(mealRaw, 10) : 0;
-  const shiftRotation = parseRot(rotRaw) ?? Prisma.DbNull;
-  const shiftRotationStart = rotStartRaw ? new Date(rotStartRaw) : null;
-  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), shiftStartMin, lateGraceMin, mealAllowanceRp, shiftRotation, shiftRotationStart } }); await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
+  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), shiftStartMin, lateGraceMin, mealAllowanceRp } }); await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
 }
 export async function updateUser(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), name: z.string().min(2), role: ROLE, branchId: z.string().min(1) }), fd), active = fd.get("active") === "on";
@@ -84,14 +66,10 @@ export async function updateUser(fd: FormData) {
   const shiftRaw = String(fd.get("shiftStart") ?? "").trim();
   const graceRaw = String(fd.get("lateGraceMin") ?? "").trim();
   const mealRaw = String(fd.get("mealAllowanceRp") ?? "").trim();
-  const rotRaw = String(fd.get("shiftRotation") ?? "").trim();
-  const rotStartRaw = String(fd.get("shiftRotationStart") ?? "").trim();
   const shiftStartMin = shiftRaw && /^\d{2}:\d{2}$/.test(shiftRaw) ? hhmm(shiftRaw) : null;
   const lateGraceMin = graceRaw ? parseInt(graceRaw, 10) : null;
   const mealAllowanceRp = mealRaw ? parseInt(mealRaw, 10) : 0;
-  const shiftRotation = parseRot(rotRaw) ?? Prisma.DbNull;
-  const shiftRotationStart = rotStartRaw ? new Date(rotStartRaw) : null;
-  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, shiftStartMin, lateGraceMin, mealAllowanceRp, shiftRotation, shiftRotationStart } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); toast("ok", "Berhasil"); done();
+  await prisma.user.update({ where: { id: d.id }, data: { name: d.name, role: d.role, branchId: d.branchId, active, shiftStartMin, lateGraceMin, mealAllowanceRp } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "USER_UPDATE", "User", d.id, { ...d, active }); toast("ok", "Berhasil"); done();
 }
 export async function resetPin(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);

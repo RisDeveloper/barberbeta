@@ -3,14 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireUser, handle, HttpError } from "@/lib/session";
 import bcrypt from "bcryptjs";
-import { activeShift } from "@/lib/shift";
 const Body = z.object({ email: z.string().trim().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/).optional() });
 
 function local(d: Date, tz: string) {
-  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", weekday: "short" }).formatToParts(d);
-  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
-  const dowMap: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
-  return { date: `${p.year}-${p.month}-${p.day}`, minutes: +p.hour * 60 + +p.minute, dow: dowMap[p.weekday] ?? 0 };
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(d).map((x) => [x.type, x.value]));
+  return { date: `${p.year}-${p.month}-${p.day}`, minutes: +p.hour * 60 + +p.minute };
 }
 
 export const POST = (req: Request) => handle(async () => {
@@ -19,24 +17,16 @@ export const POST = (req: Request) => handle(async () => {
   const { email, pin } = Body.parse(await req.json());
   const emp = await prisma.user.findUnique({ where: { email } });
   if (!emp || emp.role !== "EMPLOYEE" || !emp.active || emp.deletedAt || emp.branchId !== cashier.branchId) throw new HttpError(403, "Karyawan tidak valid untuk cabang ini");
-  const now = new Date(), { date, minutes, dow } = local(now, branch.timezone);
+  const now = new Date(), { date, minutes } = local(now, branch.timezone);
   const rec = await prisma.attendanceRecord.findUnique({ where: { userId_workDate: { userId: emp.id, workDate: date } } });
   const reply = (r: { checkInAt: Date; checkOutAt: Date | null; status: string; mealAllowanceRp?: number }, state: string, notice: string) =>
     Response.json({ name: emp.name, branch: branch.name, state, notice, status: r.status, checkInAt: r.checkInAt, checkOutAt: r.checkOutAt, mealAllowanceRp: r.mealAllowanceRp ?? 0 });
-  // check open days
-  const openDays = (branch.openDays ?? "0,1,2,3,4,5,6").split(",").map((x) => parseInt(x.trim(), 10)).filter((n) => !isNaN(n));
-  if (!openDays.includes(dow)) throw new HttpError(400, "Cabang tutup hari ini");
   if (!rec) {
     if (!pin) throw new HttpError(400, "PIN wajib untuk absen masuk");
     const ok = await bcrypt.compare(pin, emp.pinHash);
     if (!ok) throw new HttpError(401, "Email atau PIN salah");
-    // active shift (rotation or override or branch default)
-    const rot = activeShift(emp as any, now);
-    const shiftStart = rot?.startMin ?? emp.shiftStartMin ?? branch.shiftStartMin;
-    const grace = rot?.graceMin ?? emp.lateGraceMin ?? branch.lateGraceMin;
-    const meal = rot?.mealAllowanceRp ?? emp.mealAllowanceRp ?? 0;
-    const late = minutes > shiftStart + grace;
-    const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : meal } });
+    const late = minutes > (emp.shiftStartMin ?? branch.shiftStartMin) + (emp.lateGraceMin ?? branch.lateGraceMin);
+    const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : (emp.mealAllowanceRp ?? 0) } });
     return reply(r, "Sudah Absen Datang", "Absen masuk tercatat");
   }
   if (rec.checkOutAt) return reply(rec, "Sudah Absen Pulang", "Sudah absen keluar hari ini");
