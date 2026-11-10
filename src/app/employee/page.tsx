@@ -46,6 +46,7 @@ export default async function Dashboard() {
   </div></div>
     <div className="grid stats">
       <div className="card stat"><small>Komisi hari ini</small><b>{rp(t.earningsRp)}</b></div>
+      <div className="card stat"><small>Pelanggan hari ini</small><b>{t.customers}</b></div>
       <div className="card stat"><small>Kasbon (total)</small><b>{rp(totalKasbon)}</b></div>
       <div className="card stat"><small>Pendapatan bulan ini</small><b>{rp(m.earningsRp)}</b></div>
       <div className="card stat"><small>Pendapatan bersih (bulan ini)</small><b>{rp(monthNet)}</b></div></div></>);
