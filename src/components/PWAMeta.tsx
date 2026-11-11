@@ -7,7 +7,7 @@ export default function PWAMeta() {
       ["meta", { name: "apple-mobile-web-app-capable", content: "yes" }],
       ["meta", { name: "apple-mobile-web-app-status-bar-style", content: "default" }],
       ["meta", { name: "apple-mobile-web-app-title", content: "TheSystem" }],
-      ["link", { rel: "apple-touch-icon", href: "/applogo.png" }],
+      ["link", { rel: "apple-touch-icon", href: "/icon-192.png" }],
       ["meta", { name: "theme-color", content: "#FED950" }],
     ];
     for (const [tag, attrs] of tags) {
