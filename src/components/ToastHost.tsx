@@ -14,6 +14,23 @@ export default function ToastHost() {
 
   useEffect(() => {
     (window as any).__showToast = push;
+    // inject PWA meta tags for iOS standalone mode
+    const pwaTags: [string, Record<string, string>][] = [
+      ["link", { rel: "manifest", href: "/manifest.json" }],
+      ["meta", { name: "apple-mobile-web-app-capable", content: "yes" }],
+      ["meta", { name: "apple-mobile-web-app-status-bar-style", content: "default" }],
+      ["meta", { name: "apple-mobile-web-app-title", content: "BarberStory" }],
+      ["link", { rel: "apple-touch-icon", href: "/applogo.png" }],
+      ["meta", { name: "theme-color", content: "#FED950" }],
+    ];
+    for (const [tag, attrs] of pwaTags) {
+      const key = Object.keys(attrs)[0];
+      const val = Object.values(attrs)[0];
+      if (document.querySelector(`${tag}[${key}="${val}"]`)) continue;
+      const el = document.createElement(tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      document.head.appendChild(el);
+    }
     const poll = () => {
       const m = document.cookie.match(/(?:^|; )toast=([^;]*)/);
       if (!m) return;
