@@ -47,9 +47,9 @@ export default function ToastHost() {
   }, []);
 
   return (
-    <div style={{ position: "fixed", bottom: 16, left: 16, zIndex: 9999, display: "flex", flexDirection: "column", gap: 8, maxWidth: 360, pointerEvents: "none" }}>
+    <div className="toastHost">
       {toasts.map((t) => (
-        <div key={t.id} style={{ padding: "10px 14px", borderRadius: 12, color: "#fff", background: t.type === "ok" ? "#0D652D" : "#A50E0E", boxShadow: "0 4px 12px rgba(0,0,0,.25)", fontSize: 13, fontWeight: 500, pointerEvents: "auto" }}>
+        <div key={t.id} className={"toastItem " + (t.type === "ok" ? "toastOk" : "toastErr")}>
           {t.msg}
         </div>
       ))}
