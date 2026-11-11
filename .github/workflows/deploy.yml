@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: 43.157.213.159
+          username: root
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
+            cd /var/www/barberstory
+            git pull
+            npm ci
+            ./node_modules/.bin/prisma migrate deploy
+            ./node_modules/.bin/prisma generate
+            npm run build
+            pm2 restart barberstory
+            echo "Deploy selesai"
