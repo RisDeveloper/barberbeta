@@ -6,7 +6,7 @@ export default function PWAMeta() {
       ["link", { rel: "manifest", href: "/manifest.json" }],
       ["meta", { name: "apple-mobile-web-app-capable", content: "yes" }],
       ["meta", { name: "apple-mobile-web-app-status-bar-style", content: "default" }],
-      ["meta", { name: "apple-mobile-web-app-title", content: "BarberStory" }],
+      ["meta", { name: "apple-mobile-web-app-title", content: "TheSystem" }],
       ["link", { rel: "apple-touch-icon", href: "/applogo.png" }],
       ["meta", { name: "theme-color", content: "#FED950" }],
     ];

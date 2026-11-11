@@ -4,5 +4,5 @@ const items: [string, string, string][] = [["/", "Ringkasan Bisnis", "#C2E7FF"],
   ["/finance", "Pendapatan & Pengeluaran", "#F8D7E8"], ["/reports", "Laporan Keuangan", "#FEF3C7"], ["/settings", "Pengaturan Sistem", "#C2E7FF"]];
 export default async function Shell({ children }: { children: ReactNode }) {
   const u = await ownerCtx();
-  return (<div className="app"><aside className="side"><div className="brand"><span className="logo" style={{ border: 0 }}><img src={u.logoUrl || "/applogo.png"} alt="" /></span>BarberStory</div><div className="sidecard"><div className="portal">Pemilik</div><PortalNav items={items} prefix="/owner" /></div></aside><main className="main">{children}</main></div>);
+  return (<div className="app"><aside className="side"><div className="brand"><span className="logo" style={{ border: 0 }}><img src={u.logoUrl || "/applogo.png"} alt="" /></span>TheSystem</div><div className="sidecard"><div className="portal">Pemilik</div><PortalNav items={items} prefix="/owner" /></div></aside><main className="main">{children}</main></div>);
 }

@@ -38,7 +38,7 @@ export default function POS() {
       <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br />
       <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={reset}>Transaksi baru</button><button className="btn t" onClick={() => window.print()}>Cetak struk</button></div></div>
     <div className="receipt">
-      <div className="r-center r-bold">BarberStory</div>
+      <div className="r-center r-bold">TheSystem</div>
       {branchName && <div className="r-center">{branchName}</div>}
       <div className="r-line" />
       <div className="r-row"><span>Tanggal</span><span>{new Date().toLocaleString("id-ID")}</span></div>

@@ -1,6 +1,6 @@
 {
-  "name": "BarberStory",
-  "short_name": "BarberStory",
+  "name": "TheSystem",
+  "short_name": "TheSystem",
   "description": "POS & manajemen barbershop",
   "start_url": "/",
   "display": "standalone",

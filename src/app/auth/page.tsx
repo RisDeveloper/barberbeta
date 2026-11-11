@@ -16,7 +16,7 @@ export default function Login() {
     }
   }
   return (<div className="center"><form className="card login" onSubmit={submit}>
-    <div className="brand" style={{ padding: 0, marginBottom: 18 }}><span className="logo" style={{ border: 0 }}><img src="/applogo.png" alt="BarberStory" /></span>BarberStory</div>
+    <div className="brand" style={{ padding: 0, marginBottom: 18 }}><span className="logo" style={{ border: 0 }}><img src="/applogo.png" alt="TheSystem" /></span>TheSystem</div>
     <label htmlFor="e">Email</label><input id="e" className="field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
     <label htmlFor="p">PIN</label><input id="p" className="field" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} required />
     {err && <div className="err" role="alert">{err}</div>}
