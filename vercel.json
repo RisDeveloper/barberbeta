@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
   "regions": ["sin1"],
-  "buildCommand": "prisma migrate deploy && prisma generate && next build"
+  "buildCommand": "prisma migrate deploy && prisma generate && VERCEL_FORCE_NO_BUILD_CACHE=1 next build"
 }
