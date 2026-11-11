@@ -1,5 +1,5 @@
 import "./globals.css"; import type { ReactNode } from "react"; import type { Viewport } from "next"; import ThemeToggle from "@/components/ThemeToggle"; import ToastHost from "@/components/ToastHost"; import SWRegister from "@/components/SWRegister";
-export const metadata = { title: "BarberStory" };
+export const metadata = { title: "BarberStory" }; // pwa-v2
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 const themeScript = "try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=t}catch(e){}";
 export default function Root({ children }: { children: ReactNode }) {
