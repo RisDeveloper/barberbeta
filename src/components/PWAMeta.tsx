@@ -11,6 +11,7 @@ export default function PWAMeta() {
       ["meta", { name: "theme-color", content: "#FED950" }],
     ];
     for (const [tag, attrs] of tags) {
+      if (document.querySelector(`${tag}[${Object.keys(attrs)[0]}="${Object.values(attrs)[0]}"]`)) continue;
       const el = document.createElement(tag);
       for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
       document.head.appendChild(el);
