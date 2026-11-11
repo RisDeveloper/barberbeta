@@ -20,5 +20,5 @@ export default function Login() {
     <label htmlFor="e">Email</label><input id="e" className="field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
     <label htmlFor="p">PIN</label><input id="p" className="field" type="password" inputMode="numeric" value={pin} onChange={(e) => setPin(e.target.value)} required />
     {err && <div className="err" role="alert">{err}</div>}
-    <button className="btn" disabled={busy}>{busy ? "Sedang masuk…" : "Masuk"}</button></form></div>);
+    <button className="btn" disabled={busy}>{busy ? "Sedang masuk…" : "Masuk"} (v2)</button></form></div>);
 }
