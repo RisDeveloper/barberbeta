@@ -163,7 +163,8 @@ model AttendanceRecord {
 model Service {
   id           String        @id @default(cuid())
   branch       Branch?       @relation(fields: [branchId], references: [id])
-  branchId     String? // null = all branches
+  branchId     String? // null = all branches (legacy/single)
+  branchIds    String[] @default([]) // multi-branch availability; empty + null branchId = all branches
   name         String
   priceRp      Int
   commissionRp Int           @default(0)

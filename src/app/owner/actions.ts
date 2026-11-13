@@ -126,7 +126,8 @@ export async function deleteUser(fd: FormData) {
 }
 export async function saveService(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
-  const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
+  const branchIds = fd.getAll("branchIds").map((x) => String(x));
+  const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, branchIds, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
   const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data });
   // per-employee commission overrides
   if (d.id) {

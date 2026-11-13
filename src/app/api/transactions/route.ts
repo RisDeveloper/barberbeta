@@ -10,7 +10,7 @@ export const POST = (req: Request) => handle(async () => {
   const tx = await prisma.$transaction(async (db) => {
     const dup = await db.transaction.findUnique({ where: { idempotencyKey: b.idempotencyKey } });
     if (dup) { if (dup.cashierId !== user.id) throw new HttpError(409, "Transaksi duplikat"); return dup; }
-    const service = await db.service.findFirst({ where: { id: b.serviceId, active: true, deletedAt: null, OR: [{ branchId }, { branchId: null }] } });
+    const service = await db.service.findFirst({ where: { id: b.serviceId, active: true, deletedAt: null, OR: [{ branchId: null, branchIds: { isEmpty: true } }, { branchId }, { branchIds: { has: branchId } }] } });
     if (!service) throw new HttpError(404, "Layanan tidak ditemukan");
     const artist = await db.user.findFirst({ where: { id: b.artistId, role: "EMPLOYEE", branchId, active: true, deletedAt: null } });
     if (!artist) throw new HttpError(404, "Barber tidak ditemukan di cabang ini");
