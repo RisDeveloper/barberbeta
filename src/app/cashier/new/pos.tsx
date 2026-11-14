@@ -14,8 +14,9 @@ export default function POS() {
   const qrisStatic = process.env.NEXT_PUBLIC_QRIS_STATIC ?? "";
   const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number; cashReceivedRp?: number } | null>(null);
   const [branchName, setBranchName] = useState("");
+  const [branchLogoUrl, setBranchLogoUrl] = useState("");
   const key = useRef<string>();
-  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
+  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
   useEffect(() => { if (!done) return; const t = setTimeout(() => printReceipt(), 800); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
@@ -37,8 +38,8 @@ export default function POS() {
     const w = window.open("", "_blank", "width=400,height=600");
     if (!w) return;
     const html = `<!doctype html><html><head><meta charset="utf-8"><title>Struk</title><style>body{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#000;background:#fff;padding:4px;margin:0} .c{text-align:center} .b{font-weight:700;font-size:16px;margin:0 0 4px} .row{display:flex;justify-content:space-between;margin:2px 0;gap:8px} .row span:first-child{flex:1} .line{border-top:1px dashed #000;margin:6px 0} .tot{font-weight:700}</style></head><body>
-<div class="c b">TheSystem</div>
-${branchName ? `<div class="c">${branchName}</div>` : ""}
+${branchLogoUrl ? `<div class="c"><img src="${branchLogoUrl}" style="max-width:120px;max-height:60px;object-fit:contain;margin:0 auto 4px" /></div>` : `<div class="c b">TheSystem</div>`}
+<div class="c" style="font-size:10px;color:#555;margin:0 0 6px">Powered by The System Pos</div>
 <div class="line"></div>
 <div class="row"><span>Tanggal</span><span>${new Date().toLocaleString("id-ID")}</span></div>
 <div class="row"><span>No</span><span>${done?.id ?? ""}</span></div>
