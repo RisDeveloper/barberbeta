@@ -17,7 +17,7 @@ export default function POS() {
   const key = useRef<string>();
   const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
-  useEffect(() => { if (!done) return; const t = setTimeout(() => window.print(), 300); return () => clearTimeout(t); }, [done]);
+  useEffect(() => { if (!done) return; const t = setTimeout(() => window.print(), 800); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
