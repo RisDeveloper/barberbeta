@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod"; import bcrypt from "bcryptjs"; import { revalidatePath } from "next/cache"; import { cookies } from "next/headers";
-import { prisma } from "@/lib/db"; import { Prisma } from "@prisma/client"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner";
+import { prisma } from "@/lib/db"; import { Prisma } from "@prisma/client"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner"; import { encPin } from "@/lib/pincrypt";
 const toast = (type: "ok" | "err", msg: string) => { try { cookies().set("toast", `${type}:${msg}`, { path: "/", maxAge: 10 }); } catch {} };
 const me = () => requireUser(["OWNER"]);
 const os = z.string().transform((v) => v.trim() || undefined).optional();
@@ -78,7 +78,7 @@ export async function createUser(fd: FormData) {
       workDays.push(i);
     }
   }
-  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), workDays: workDays.length ? workDays.join(",") : "0,1,2,3,4,5,6", shiftSchedule: Object.keys(schedule).length ? schedule : Prisma.DbNull } });
+  const u = await prisma.user.create({ data: { name: d.name, email: d.email, role: d.role, branchId: d.branchId, pinHash: await bcrypt.hash(d.pin, 12), pinEnc: encPin(d.pin), workDays: workDays.length ? workDays.join(",") : "0,1,2,3,4,5,6", shiftSchedule: Object.keys(schedule).length ? schedule : Prisma.DbNull } });
   await audit(o.id, "USER_CREATE", "User", u.id, { role: d.role, branchId: d.branchId }); toast("ok", "Berhasil"); done();
 }
 export async function updateUser(fd: FormData) {
@@ -104,7 +104,7 @@ export async function updateUser(fd: FormData) {
 }
 export async function resetPin(fd: FormData) {
   const o = await me(), d = get(z.object({ id: z.string(), pin: z.string().regex(/^\d{4,8}$/) }), fd);
-  await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); toast("ok", "Berhasil"); done();
+  await prisma.user.update({ where: { id: d.id }, data: { pinHash: await bcrypt.hash(d.pin, 12), pinEnc: encPin(d.pin) } }); await prisma.session.deleteMany({ where: { userId: d.id } }); await audit(o.id, "PIN_RESET", "User", d.id); toast("ok", "Berhasil"); done();
 }
 export async function deleteService(fd: FormData) {
   const o = await me(), id = String(fd.get("id"));

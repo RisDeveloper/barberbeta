@@ -94,6 +94,7 @@ model User {
   email       String   @unique
   name        String
   pinHash     String
+  pinEnc      String?  // AES-256-GCM encrypted PIN, owner-viewable
   role        Role
   branch      Branch?  @relation(fields: [branchId], references: [id])
   branchId    String? // null only for OWNER

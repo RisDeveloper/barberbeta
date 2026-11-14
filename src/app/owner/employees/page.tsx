@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db"; import { ownerCtx } from "@/lib/owner"; import type { SP } from "@/lib/range"; import BranchSel from "@/components/BranchSel"; import { F } from "@/components/F"; import Tbl from "@/components/Tbl"; import { rp } from "@/lib/time"; import { createUser, updateUser, resetPin, deleteUser } from "../actions";
+import { prisma } from "@/lib/db"; import { ownerCtx } from "@/lib/owner"; import type { SP } from "@/lib/range"; import BranchSel from "@/components/BranchSel"; import { F } from "@/components/F"; import Tbl from "@/components/Tbl"; import { rp } from "@/lib/time"; import { createUser, updateUser, resetPin, deleteUser } from "../actions"; import { decPin } from "@/lib/pincrypt";
 const RL: [string, string][] = [["ADMIN", "Admin"], ["CASHIER", "Kasir"], ["EMPLOYEE", "Barber"]];
 const hm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 export default async function Employees({ searchParams: sp }: { searchParams: SP }) {
@@ -35,7 +35,7 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
   </div>
   <button className="btn s">Tambah</button></form></div>
     <form className="fr" style={{ marginBottom: 16 }}><F l="Cari nama" n="q" d={sp.q} /><F l="Peran" n="role" d={sp.role} o={[["", "Semua"], ...RL]} /><BranchSel sp={sp} /><button className="btn s">Saring</button></form>
-    <Tbl head={["Nama", "Email", "Peran", "Cabang", "Kasbon", "Bersih", "Status", "Kelola"]} rows={us.map((u) => [u.name, u.email, RL.find(([r]) => r === u.role)?.[1], u.branch?.name ?? "—", rp(kasbonOf(u.id)), rp(netOf(u.id)), <span className={"pill " + (u.active ? "ok" : "mute")}>{u.active ? "Aktif" : "Nonaktif"}</span>,
+    <Tbl head={["Nama", "Email", "PIN", "Peran", "Cabang", "Kasbon", "Bersih", "Status", "Kelola"]} rows={us.map((u) => [u.name, u.email, decPin(u.pinEnc) || "—", RL.find(([r]) => r === u.role)?.[1], u.branch?.name ?? "—", rp(kasbonOf(u.id)), rp(netOf(u.id)), <span className={"pill " + (u.active ? "ok" : "mute")}>{u.active ? "Aktif" : "Nonaktif"}</span>,
       <><details><summary>Ubah</summary><form action={updateUser} className="fr"><input type="hidden" name="id" value={u.id} /><F l="Nama" n="name" d={u.name} r /><F l="Peran" n="role" d={u.role} o={RL} /><F l="Cabang" n="branchId" d={u.branchId} o={B} />    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (pilih shift per hari, kosong = libur)</div>
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => {
       const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, any> : {};
@@ -64,5 +64,5 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
   </div>
   <label><input type="checkbox" name="active" defaultChecked={u.active} /> Aktif</label><button className="btn s">Simpan</button></form>
         <form action={resetPin} className="fr"><input type="hidden" name="id" value={u.id} /><F l="PIN baru" n="pin" t="password" r /><button className="btn s t">Reset PIN</button></form></details><details><summary className="danger">Hapus</summary><form action={deleteUser}><input type="hidden" name="id" value={u.id} /><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Yakin hapus karyawan ini? Riwayat transaksi tetap tersimpan.</div><button className="btn s danger">Hapus karyawan</button></form></details></>])} />
-    <div className="portal" style={{ margin: "8px 0 0" }}>Menyimpan perubahan akan mengeluarkan karyawan dari sesi. PIN disimpan dalam bentuk hash dan tidak pernah ditampilkan.</div></>);
+    <div className="portal" style={{ margin: "8px 0 0" }}>Menyimpan perubahan akan mengeluarkan karyawan dari sesi. PIN lama yang sudah ada tidak bisa ditampilkan; reset PIN untuk menampilkannya.</div></>);
 }
