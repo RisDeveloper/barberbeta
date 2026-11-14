@@ -46,6 +46,7 @@ model Branch {
   id            String   @id @default(cuid())
   name          String
   logoUrl       String?  // data URL, small square image
+  qrisStatic    String?  // static merchant QRIS payload for dynamic QR generation
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight
   lateGraceMin  Int      @default(10)

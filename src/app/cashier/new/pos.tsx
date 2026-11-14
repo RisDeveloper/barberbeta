@@ -11,12 +11,12 @@ export default function POS() {
   const [pay, setPay] = useState<"cash" | "qris">("cash");
   const cashRef = useRef<HTMLInputElement>(null);
   const [qrDataUrl, setQrDataUrl] = useState("");
-  const qrisStatic = process.env.NEXT_PUBLIC_QRIS_STATIC ?? "";
+  const [qrisStatic, setQrisStatic] = useState(process.env.NEXT_PUBLIC_QRIS_STATIC ?? "");
   const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number; cashReceivedRp?: number } | null>(null);
   const [branchName, setBranchName] = useState("");
   const [branchLogoUrl, setBranchLogoUrl] = useState("");
   const key = useRef<string>();
-  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
+  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
   useEffect(() => { if (!done) return; const t = setTimeout(() => printReceipt(), 800); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
