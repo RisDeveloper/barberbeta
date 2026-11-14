@@ -17,7 +17,7 @@ export default function POS() {
   const key = useRef<string>();
   const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
-  useEffect(() => { if (!done) return; const t = setTimeout(() => window.print(), 800); return () => clearTimeout(t); }, [done]);
+  useEffect(() => { if (!done) return; const t = setTimeout(() => printReceipt(), 800); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
@@ -33,10 +33,37 @@ export default function POS() {
     key.current = undefined; setDone(d); (window as any).__showToast?.("ok", "Transaksi berhasil");
   }
   function reset() { setDone(null); setSid(""); setAid(""); setDisc(0); setCash(0); setCust(""); load(); }
+  function printReceipt() {
+    const w = window.open("", "_blank", "width=400,height=600");
+    if (!w) return;
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Struk</title><style>body{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#000;background:#fff;padding:4px;margin:0} .c{text-align:center} .b{font-weight:700;font-size:16px;margin:0 0 4px} .row{display:flex;justify-content:space-between;margin:2px 0;gap:8px} .row span:first-child{flex:1} .line{border-top:1px dashed #000;margin:6px 0} .tot{font-weight:700}</style></head><body>
+<div class="c b">TheSystem</div>
+${branchName ? `<div class="c">${branchName}</div>` : ""}
+<div class="line"></div>
+<div class="row"><span>Tanggal</span><span>${new Date().toLocaleString("id-ID")}</span></div>
+<div class="row"><span>No</span><span>${done?.id ?? ""}</span></div>
+<div class="line"></div>
+<div class="row"><span>Layanan</span><span>${svc?.name ?? "-"}</span></div>
+<div class="row"><span>Barber</span><span>${art?.name ?? "-"}</span></div>
+${cust ? `<div class="row"><span>Pelanggan</span><span>${cust}</span></div>` : ""}
+<div class="line"></div>
+<div class="row"><span>Harga</span><span>${rp(svc?.priceRp ?? 0)}</span></div>
+${disc > 0 ? `<div class="row"><span>Diskon</span><span>-${rp(disc)}</span></div>` : ""}
+<div class="row tot"><span>Total</span><span>${rp(done?.totalRp ?? 0)}</span></div>
+<div class="row"><span>${pay === "qris" ? "QRIS" : "Tunai"}</span><span>${rp(done?.cashReceivedRp ?? cash)}</span></div>
+<div class="row"><span>Kembalian</span><span>${rp(done?.changeRp ?? 0)}</span></div>
+<div class="line"></div>
+<div class="c">Terima kasih!</div>
+</body></html>`;
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
+  }
   if (done) return (<>
     <div className="card" style={{ maxWidth: 420 }}><h2>Transaksi berhasil</h2><div className="row"><span>ID</span>{done.id}</div>
       <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br />
-      <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={reset}>Transaksi baru</button><button className="btn t" onClick={() => window.print()}>Cetak struk</button></div></div>
+      <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={reset}>Transaksi baru</button><button className="btn t" onClick={() => printReceipt()}>Cetak struk</button></div></div>
     <div className="receipt">
       <div className="r-center r-bold">TheSystem</div>
       {branchName && <div className="r-center">{branchName}</div>}
