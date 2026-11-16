@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db"; import { ownerCtx, TZ } from "@/lib/owner"; import { startOfLocalMonth, rp } from "@/lib/time"; import { F } from "@/components/F"; import LogoField from "@/components/LogoField"; import QrisField from "@/components/QrisField"; import Tbl from "@/components/Tbl"; import { saveBranch, assignAdmin, deleteBranch, saveShift, deleteShift } from "../actions";
 const hm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
 const BF = ({ b }: { b?: any }) => (<form action={saveBranch} className="fr">{b && <input type="hidden" name="id" value={b.id} />}<F l="Nama" n="name" d={b?.name} r /><F l="Zona waktu" n="timezone" d={b?.timezone ?? "Asia/Jakarta"} r />
-  <F l="Awal shift" n="shiftStart" t="time" d={hm(b?.shiftStartMin ?? 540)} r /><input type="hidden" name="lateGraceMin" value={b?.lateGraceMin ?? 10} /><LogoField current={b?.logoUrl} />
+  <F l="Awal shift" n="shiftStart" t="time" d={hm(b?.shiftStartMin ?? 540)} r /><input type="hidden" name="lateGraceMin" value={b?.lateGraceMin ?? 10} /><F l="Ukuran struk" n="receiptWidthMm" d={String(b?.receiptWidthMm ?? 58)} o={[["58", "58 mm (thermal kecil)"], ["80", "80 mm (thermal besar)"]]} /><LogoField current={b?.logoUrl} />
   <QrisField current={b?.qrisStatic} />
   {b && <label><input type="checkbox" name="active" defaultChecked={b.active} /> Aktif</label>}<button className="btn s">Simpan</button></form>);
 export default async function Branches() {

@@ -35,10 +35,10 @@ export async function deleteShift(fd: FormData) {
   await audit(o.id, "SHIFT_DELETE", "Shift", id, { name: s.name }); toast("ok", "Berhasil"); done();
 }
 export async function saveBranch(fd: FormData) {
-  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int }), fd);
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), timezone: z.string().min(3), shiftStart: z.string().regex(/^\d{2}:\d{2}$/), lateGraceMin: int, receiptWidthMm: z.coerce.number().int().min(40).max(120).default(58) }), fd);
   const logo = logoOf(fd);
   const qrisRaw = String(fd.get("qrisStatic") ?? "").trim();
-  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, active: fd.get("active") === "on" || !d.id, ...(logo === null ? {} : { logoUrl: logo || null }), qrisStatic: qrisRaw || null };
+  const data = { name: d.name, timezone: d.timezone, shiftStartMin: hhmm(d.shiftStart), lateGraceMin: d.lateGraceMin, receiptWidthMm: d.receiptWidthMm, active: fd.get("active") === "on" || !d.id, ...(logo === null ? {} : { logoUrl: logo || null }), qrisStatic: qrisRaw || null };
   const b = d.id ? await prisma.branch.update({ where: { id: d.id }, data }) : await prisma.branch.create({ data });
   await audit(o.id, d.id ? "BRANCH_UPDATE" : "BRANCH_CREATE", "Branch", b.id, data); toast("ok", "Berhasil"); done();
 }

@@ -57,6 +57,7 @@ model Branch {
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight
   lateGraceMin  Int      @default(10)
+  receiptWidthMm Int     @default(58) // thermal receipt paper width (58 or 80)
   active        Boolean  @default(true)
   deletedAt     DateTime?
   users         User[]
