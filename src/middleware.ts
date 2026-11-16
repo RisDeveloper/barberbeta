@@ -3,6 +3,7 @@ const PORTALS: Record<string, string> = { auth: "auth", kasir: "cashier", admin:
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return NextResponse.next();
+  if (pathname === "/customer" || pathname === "/customer/") return NextResponse.rewrite(new URL("/customer.html", req.url));
   if (pathname.startsWith("/cashier/attendance") || pathname.startsWith("/employee/attendance")) {
     const r = NextResponse.next();
     r.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");

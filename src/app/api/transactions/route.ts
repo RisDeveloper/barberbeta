@@ -18,10 +18,14 @@ export const POST = (req: Request) => handle(async () => {
     const totalRp = service.priceRp - b.discountRp;
     if (b.cashReceivedRp < totalRp) throw new HttpError(400, "Tunai diterima kurang dari total");
     const now = new Date();
+    const customer = b.customerName ? await db.user.findFirst({ where: { name: b.customerName, role: "MEMBER", deletedAt: null } }) : null;
     const created = await db.transaction.create({ data: { publicId: `TRX-${now.toISOString().slice(0, 10).replace(/-/g, "")}-${randomBytes(3).toString("hex").toUpperCase()}`,
       idempotencyKey: b.idempotencyKey, branchId, cashierId: user.id, artistId: artist.id, serviceId: service.id, serviceName: service.name,
       priceRp: service.priceRp, discountRp: b.discountRp, totalRp, cashReceivedRp: b.cashReceivedRp, changeRp: b.cashReceivedRp - totalRp, paymentMethod: b.paymentMethod,
-      customerName: b.customerName, status: "COMPLETED" } });
+      customerName: b.customerName, customerId: customer?.id, status: "COMPLETED" } });
+    if (customer && service.loyaltyPoints > 0) {
+      await db.user.update({ where: { id: customer.id }, data: { loyaltyPoints: { increment: service.loyaltyPoints } } });
+    }
     // komisi karyawan: pakai override per-karyawan jika ada, lalu komisi per-layanan, fallback ke aturan komisi
     const override = await db.serviceCommission.findUnique({ where: { serviceId_userId: { serviceId: b.serviceId, userId: artist.id } } });
     const empCommission = override?.commissionRp ?? service.commissionRp;

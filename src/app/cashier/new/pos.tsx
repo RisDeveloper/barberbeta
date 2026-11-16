@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { buildQris } from "@/lib/qris";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
-type S = { id: string; name: string; priceRp: number; commissionRp?: number }; type A = { id: string; name: string; available: boolean };
+type S = { id: string; name: string; priceRp: number; commissionRp?: number; loyaltyPoints?: number }; type A = { id: string; name: string; available: boolean };
 export default function POS() {
   const [services, setS] = useState<S[]>([]), [artists, setA] = useState<A[]>([]);
 
@@ -89,6 +89,7 @@ ${disc > 0 ? `<div class="row"><span>Diskon</span><span>-${rp(disc)}</span></div
       {services.map((s) => (<div key={s.id} className={"svc" + (s.id === sid ? " sel" : "")} title={s.name}>
         <div className="svcImg"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 5H4V19L13.2923 9.70649C13.6828 9.31595 14.3159 9.31591 14.7065 9.70641L20 15.0104V5ZM2 3.9934C2 3.44476 2.45531 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9934V20.0066C22 20.5552 21.5447 21 21.0082 21H2.9918C2.44405 21 2 20.5551 2 20.0066V3.9934ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z" /></svg></div>
         <div className="svcTitle" title={s.name} aria-label={s.name}>{s.name.split(" ").map((w, i) => <span key={i}>{w}</span>)}</div>
+{s.loyaltyPoints ? <div style={{ position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%", background: "#0D652D", color: "#fff", fontSize: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>{s.loyaltyPoints}</div> : null}
         <div className="svcAction">
           <span className="svcPrice">{rp(s.priceRp)}</span>
           <button type="button" className="svcBtn" onClick={() => { setSid(s.id); if (disc > s.priceRp) setDisc(s.priceRp); }}>Pilih</button>

@@ -34,7 +34,8 @@ export const POST = (req: Request) => handle(async () => {
     const todayShiftId = (todayEntry && typeof todayEntry === "object") ? (todayEntry.shift ?? null) : (typeof todayEntry === "string" ? todayEntry : null);
     const assigned = (emp.shifts ?? []).map((us: any) => us.shift).filter((s: any) => s && s.active);
     let matched: any = null;
-    if (todayShiftId) matched = assigned.find((s: any) => s.id === todayShiftId) ?? null;
+    // The per-day schedule stores a shiftId but UserShift rows may not exist, so look the shift up directly.
+    if (todayShiftId) matched = assigned.find((s: any) => s.id === todayShiftId) ?? await prisma.shift.findFirst({ where: { id: todayShiftId, branchId: emp.branchId!, active: true } });
     if (!matched && assigned.length) matched = assigned.find((s: any) => minutes >= s.startMin && minutes <= s.endMin) ?? assigned[0];
     // if schedule exists but no shift for today => off day
     if (schedule && !todayShiftId) throw new HttpError(400, "Bukan hari kerja karyawan ini");

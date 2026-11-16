@@ -125,10 +125,23 @@ export async function deleteUser(fd: FormData) {
   ]);
   await audit(o.id, "USER_DELETE", "User", id, { name: u!.name, role: u!.role }); toast("ok", "Berhasil"); done();
 }
+export async function saveReward(fd: FormData) {
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), costPoints: pos, discountRp: z.coerce.number().int().min(0).default(0) }), fd);
+  const data = { name: d.name, costPoints: d.costPoints, discountRp: d.discountRp, active: fd.get("active") === "on" || !d.id };
+  const r = d.id ? await prisma.reward.update({ where: { id: d.id }, data }) : await prisma.reward.create({ data });
+  await audit(o.id, "REWARD_SAVE", "Reward", r.id, data); toast("ok", "Berhasil"); done();
+}
+export async function deleteReward(fd: FormData) {
+  const o = await me(), id = String(fd.get("id"));
+  const r = await prisma.reward.findUnique({ where: { id } });
+  if (!r) throw new HttpError(404, "Hadiah tidak ditemukan");
+  await prisma.reward.update({ where: { id }, data: { active: false } });
+  await audit(o.id, "REWARD_DELETE", "Reward", id, { name: r.name }); toast("ok", "Berhasil"); done();
+}
 export async function saveService(fd: FormData) {
-  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
+  const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), priceRp: pos, commissionRp: z.coerce.number().int().min(0).default(0), loyaltyPoints: z.coerce.number().int().min(0).default(0), branchId: os }), fd);
   const branchIds = fd.getAll("branchIds").map((x) => String(x));
-  const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, branchId: d.branchId ?? null, branchIds, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
+  const data = { name: d.name, priceRp: d.priceRp, commissionRp: d.commissionRp, loyaltyPoints: d.loyaltyPoints, branchId: d.branchId ?? null, branchIds, active: fd.get("active") === "on" || !d.id }; // past transactions keep their price snapshot
   const s = d.id ? await prisma.service.update({ where: { id: d.id }, data }) : await prisma.service.create({ data });
   // per-employee commission overrides
   if (d.id) {

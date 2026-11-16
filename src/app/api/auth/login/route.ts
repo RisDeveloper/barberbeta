@@ -17,6 +17,7 @@ const URLS: Record<string, string | undefined> = {
   ADMIN: process.env.PORTAL_ADMIN_URL,
   CASHIER: process.env.PORTAL_CASHIER_URL,
   EMPLOYEE: process.env.PORTAL_EMPLOYEE_URL,
+  MEMBER: process.env.PORTAL_MEMBER_URL,
 };
 
 const PATHS: Record<string, string> = {
@@ -24,6 +25,7 @@ const PATHS: Record<string, string> = {
   ADMIN: "/admin",
   CASHIER: "/cashier",
   EMPLOYEE: "/employee",
+  MEMBER: "/member",
 };
 
 export async function POST(req: Request) {
