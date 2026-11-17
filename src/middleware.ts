@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const PORTALS: Record<string, string> = { auth: "auth", kasir: "cashier", admin: "admin", owner: "owner", employee: "employee" };
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/api") || pathname.startsWith("/_next")) return NextResponse.next();
+  if (pathname.startsWith("/api") || pathname.startsWith("/_next") || pathname === "/printer-test") return NextResponse.next();
   if (pathname === "/customer" || pathname === "/customer/") return NextResponse.rewrite(new URL("/customer.html", req.url));
   if (pathname.startsWith("/cashier/attendance") || pathname.startsWith("/employee/attendance")) {
     const r = NextResponse.next();
