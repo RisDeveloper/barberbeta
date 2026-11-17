@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { buildQris } from "@/lib/qris";
+import { buildReceipt } from "@/lib/escpos";
+import { bluetoothSupported, connectPrinter, printBytes } from "@/lib/bluetooth-printer";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
 type S = { id: string; name: string; priceRp: number; commissionRp?: number; loyaltyPoints?: number }; type A = { id: string; name: string; available: boolean };
 export default function POS() {
@@ -16,8 +18,7 @@ export default function POS() {
   const [branchName, setBranchName] = useState("");
   const [branchLogoUrl, setBranchLogoUrl] = useState("");
   const [receiptWidthMm, setReceiptWidthMm] = useState(58);
-  const [printMode, setPrintMode] = useState<"system" | "pdf" | "rawbt">("system");
-  const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+  const [printMode, setPrintMode] = useState<"system" | "pdf" | "ble">("system");
   const isIOS = typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1));
   const key = useRef<string>();
   const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setReceiptWidthMm(d.receiptWidthMm ?? 58); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
@@ -25,7 +26,7 @@ export default function POS() {
   useEffect(() => {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
     const saved = (() => { try { return localStorage.getItem("receiptPrintMode"); } catch { return null; } })();
-    setPrintMode(saved === "system" || saved === "pdf" || saved === "rawbt" ? saved : ios ? "pdf" : "system");
+    setPrintMode(saved === "system" || saved === "pdf" || saved === "ble" ? saved : ios ? "pdf" : bluetoothSupported() ? "ble" : "system");
   }, []);
   const chooseMode = (m: typeof printMode) => { setPrintMode(m); try { localStorage.setItem("receiptPrintMode", m); } catch {} };
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
@@ -44,32 +45,31 @@ export default function POS() {
     key.current = undefined; setDone(d); (window as any).__showToast?.("ok", "Transaksi berhasil");
   }
   function reset() { setDone(null); setSid(""); setAid(""); setDisc(0); setCash(0); setCust(""); load(); }
-  function printRawBT() {
+  async function printBluetooth() {
     if (!done) return;
-    const width = mm === 80 ? 48 : 32;
-    const padL = (l: string, r: string) => l + " ".repeat(Math.max(1, width - l.length - r.length)) + r;
-    const lines = [
-      "TheSystem",
-      ...(branchName ? [branchName] : []),
-      "Powered by The System Pos",
-      "-".repeat(width),
-      padL("Tanggal", new Date().toLocaleString("id-ID")),
-      padL("No", done.id),
-      "-".repeat(width),
-      padL("Layanan", svc?.name ?? "-"),
-      padL("Barber", art?.name ?? "-"),
-      ...(cust ? [padL("Pelanggan", cust)] : []),
-      "-".repeat(width),
-      padL("Harga", rp(svc?.priceRp ?? 0)),
-      ...(disc > 0 ? [padL("Diskon", "-" + rp(disc))] : []),
-      padL("Total", rp(done.totalRp)),
-      padL(pay === "qris" ? "QRIS" : "Tunai", rp(done.cashReceivedRp ?? cash)),
-      padL("Kembalian", rp(done.changeRp)),
-      "-".repeat(width),
-      "Terima kasih!",
-      "", "", "",
-    ];
-    window.location.href = "rawbt:" + encodeURIComponent(lines.join("\n"));
+    try {
+      (window as any).__showToast?.("ok", "Menghubungkan printer…");
+      const name = await connectPrinter();
+      const bytes = buildReceipt({
+        widthMm: mm,
+        shop: branchName || "TheSystem",
+        date: new Date(),
+        service: svc?.name,
+        barber: art?.name,
+        customer: cust || undefined,
+        priceRp: svc?.priceRp ?? 0,
+        discountRp: disc,
+        totalRp: done.totalRp,
+        paidRp: done.cashReceivedRp ?? cash,
+        changeRp: done.changeRp,
+        method: pay === "qris" ? "QRIS" : "Tunai",
+        footer: "",
+      });
+      await printBytes(bytes);
+      (window as any).__showToast?.("ok", `Struk terkirim ke ${name}`);
+    } catch (e: any) {
+      (window as any).__showToast?.("err", e?.message ?? "Gagal mencetak via Bluetooth");
+    }
   }
   async function sharePdf() {
     if (!done) return;
@@ -121,7 +121,7 @@ export default function POS() {
   }
   function printReceipt() {
     if (!done) return;
-    if (printMode === "rawbt") { printRawBT(); return; }
+    if (printMode === "ble") { void printBluetooth(); return; }
     if (printMode === "pdf") { void sharePdf(); return; }
     window.print();
   }
@@ -134,10 +134,10 @@ export default function POS() {
         <select className="field" style={{ margin: 0, width: "auto", padding: "6px 8px" }} value={printMode} onChange={(e) => chooseMode(e.target.value as typeof printMode)}>
           <option value="system">Sistem / AirPrint / Driver</option>
           <option value="pdf">PDF (share / simpan)</option>
-          {isAndroid && <option value="rawbt">RawBT (Bluetooth)</option>}
+          {bluetoothSupported() && <option value="ble">Bluetooth langsung (BLE)</option>}
         </select></div>
-      {isAndroid && printMode === "rawbt" && <div className="portal" style={{ margin: "8px 0 0" }}>Pastikan app RawBT terpasang di tablet Android.</div>}
-      {isIOS && printMode !== "pdf" && <div className="portal" style={{ margin: "8px 0 0" }}>Di iPad/iPhone sebaiknya pakai PDF/AirPrint; Bluetooth murni tidak didukung Safari.</div>}</div>
+      {printMode === "ble" && <div className="portal" style={{ margin: "8px 0 0" }}>Pilih printer BLE saat diminta. Printer Bluetooth 2.0 klasik tidak muncul di Web Bluetooth.</div>}
+      {isIOS && printMode !== "pdf" && <div className="portal" style={{ margin: "8px 0 0" }}>Di iPad/iPhone sebaiknya pakai PDF/AirPrint; Web Bluetooth tidak tersedia di Safari.</div>}</div>
     <div className="receipt" style={{ width: `${mm}mm`, padding: `${rpad}mm`, fontSize: rfs }}>
       {branchLogoUrl ? <div className="r-center"><img src={branchLogoUrl} alt="" style={{ maxWidth: "100%", maxHeight: mm === 80 ? 24 : 18, objectFit: "contain", margin: "0 auto 4px" }} /></div> : <div className="r-center r-bold">TheSystem</div>}
       {branchName && <div className="r-center">{branchName}</div>}
