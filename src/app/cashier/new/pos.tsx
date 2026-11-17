@@ -134,9 +134,9 @@ export default function POS() {
         <select className="field" style={{ margin: 0, width: "auto", padding: "6px 8px" }} value={printMode} onChange={(e) => chooseMode(e.target.value as typeof printMode)}>
           <option value="system">Sistem / AirPrint / Driver</option>
           <option value="pdf">PDF (share / simpan)</option>
-          {bluetoothSupported() && <option value="ble">Bluetooth langsung (BLE)</option>}
+          <option value="ble">Bluetooth langsung (BLE)</option>
         </select></div>
-      {printMode === "ble" && <div className="portal" style={{ margin: "8px 0 0" }}>Pilih printer BLE saat diminta. Printer Bluetooth 2.0 klasik tidak muncul di Web Bluetooth.</div>}
+      {printMode === "ble" && <div className="portal" style={{ margin: "8px 0 0" }}>{bluetoothSupported() ? "Pilih printer BLE saat diminta. Printer Bluetooth 2.0 klasik tidak muncul di Web Bluetooth." : "Browser ini tidak mendukung Web Bluetooth. Wajib Chrome di Android + alamat https. Safari/iPad tidak bisa."}</div>}
       {isIOS && printMode !== "pdf" && <div className="portal" style={{ margin: "8px 0 0" }}>Di iPad/iPhone sebaiknya pakai PDF/AirPrint; Web Bluetooth tidak tersedia di Safari.</div>}</div>
     <div className="receipt" style={{ width: `${mm}mm`, padding: `${rpad}mm`, fontSize: rfs }}>
       {branchLogoUrl ? <div className="r-center"><img src={branchLogoUrl} alt="" style={{ maxWidth: "100%", maxHeight: mm === 80 ? 24 : 18, objectFit: "contain", margin: "0 auto 4px" }} /></div> : <div className="r-center r-bold">TheSystem</div>}

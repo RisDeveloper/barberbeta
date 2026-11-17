@@ -48,7 +48,8 @@ async function findWritable(server: any) {
 
 export async function connectPrinter() {
   const bt = (navigator as any).bluetooth;
-  if (!bt) throw new Error("Browser tidak mendukung Web Bluetooth. Pakai Chrome di Android.");
+  if (!window.isSecureContext) throw new Error("Cetak Bluetooth butuh alamat https.");
+  if (!bt) throw new Error("Browser tidak mendukung Web Bluetooth. Pakai Chrome Android + https (Safari/iOS tidak bisa).");
   if (!device || !device.gatt?.connected) {
     device = await bt.requestDevice({ acceptAllDevices: true, optionalServices: SERVICES });
     if (!device.gatt) throw new Error("Printer tidak mendukung GATT/BLE");
