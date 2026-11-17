@@ -19,9 +19,9 @@ export default function POS() {
   const key = useRef<string>();
   const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setReceiptWidthMm(d.receiptWidthMm ?? 58); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
-  useEffect(() => { if (!done) return; const t = setTimeout(() => printReceipt(), 800); return () => clearTimeout(t); }, [done]);
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
+  const mm = receiptWidthMm >= 76 ? 80 : 58, rfs = mm === 80 ? 12 : 10, rpad = mm === 80 ? 4 : 2;
   const qrisPayload = pay === "qris" && qrisStatic && svc ? buildQris(qrisStatic, total) : "";
   useEffect(() => { if (!qrisPayload) { setQrDataUrl(""); return; } let cancelled = false; (async () => { const { default: QRCode } = await import("qrcode"); const url = await QRCode.toDataURL(qrisPayload, { scale: 5, margin: 4 }); if (!cancelled) setQrDataUrl(url); })(); return () => { cancelled = true; }; }, [qrisPayload]);
   const shown = artists.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) && (!onlyAvail || a.available));
@@ -36,45 +36,16 @@ export default function POS() {
   }
   function reset() { setDone(null); setSid(""); setAid(""); setDisc(0); setCash(0); setCust(""); load(); }
   function printReceipt() {
-    const w = window.open("", "_blank", "width=400,height=600");
-    if (!w) return;
-    const mm = receiptWidthMm >= 76 ? 80 : 58, fs = mm === 80 ? 12 : 10, pad = mm === 80 ? 4 : 2;
-    const html = `<!doctype html><html><head><meta charset="utf-8"><title>Struk</title><style>
-@page{size:${mm}mm auto;margin:0}
-html,body{margin:0;padding:0;background:#fff}
-body{width:${mm}mm;box-sizing:border-box;padding:${pad}mm;font-family:ui-monospace,Consolas,monospace;font-size:${fs}px;line-height:1.35;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.c{text-align:center} .b{font-weight:700;font-size:${fs + 4}px;margin:0 0 4px} .row{display:flex;justify-content:space-between;margin:2px 0;gap:6px;word-break:break-word} .row span:first-child{flex:1} .line{border-top:1px dashed #000;margin:6px 0} .tot{font-weight:700}
-img{max-width:100%!important;height:auto}
-</style></head><body>
-${branchLogoUrl ? `<div class="c"><img src="${branchLogoUrl}" style="max-width:${mm - 2 * pad - 4}mm;max-height:${mm === 80 ? 24 : 18}mm;object-fit:contain;margin:0 auto 4px" /></div>` : `<div class="c b">TheSystem</div>`}
-<div class="c" style="font-size:10px;color:#555;margin:0 0 6px">Powered by The System Pos</div>
-<div class="line"></div>
-<div class="row"><span>Tanggal</span><span>${new Date().toLocaleString("id-ID")}</span></div>
-<div class="row"><span>No</span><span>${done?.id ?? ""}</span></div>
-<div class="line"></div>
-<div class="row"><span>Layanan</span><span>${svc?.name ?? "-"}</span></div>
-<div class="row"><span>Barber</span><span>${art?.name ?? "-"}</span></div>
-${cust ? `<div class="row"><span>Pelanggan</span><span>${cust}</span></div>` : ""}
-<div class="line"></div>
-<div class="row"><span>Harga</span><span>${rp(svc?.priceRp ?? 0)}</span></div>
-${disc > 0 ? `<div class="row"><span>Diskon</span><span>-${rp(disc)}</span></div>` : ""}
-<div class="row tot"><span>Total</span><span>${rp(done?.totalRp ?? 0)}</span></div>
-<div class="row"><span>${pay === "qris" ? "QRIS" : "Tunai"}</span><span>${rp(done?.cashReceivedRp ?? cash)}</span></div>
-<div class="row"><span>Kembalian</span><span>${rp(done?.changeRp ?? 0)}</span></div>
-<div class="line"></div>
-<div class="c">Terima kasih!</div>
-</body></html>`;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 300);
+    if (!done) return;
+    window.print();
   }
   if (done) return (<>
+    <style dangerouslySetInnerHTML={{ __html: `@page{size:${mm}mm auto;margin:0}` }} />
     <div className="card" style={{ maxWidth: 420 }}><h2>Transaksi berhasil</h2><div className="row"><span>ID</span>{done.id}</div>
       <div className="row"><span>Total</span>{rp(done.totalRp)}</div><div className="row"><span>Kembalian</span><b>{rp(done.changeRp)}</b></div><br />
       <div style={{ display: "flex", gap: 8 }}><button className="btn" onClick={reset}>Transaksi baru</button><button className="btn t" onClick={() => printReceipt()}>Cetak struk</button></div></div>
-    <div className="receipt">
-      <div className="r-center r-bold">TheSystem</div>
+    <div className="receipt" style={{ width: `${mm}mm`, padding: `${rpad}mm`, fontSize: rfs }}>
+      {branchLogoUrl ? <div className="r-center"><img src={branchLogoUrl} alt="" style={{ maxWidth: "100%", maxHeight: mm === 80 ? 24 : 18, objectFit: "contain", margin: "0 auto 4px" }} /></div> : <div className="r-center r-bold">TheSystem</div>}
       {branchName && <div className="r-center">{branchName}</div>}
       <div className="r-line" />
       <div className="r-row"><span>Tanggal</span><span>{new Date().toLocaleString("id-ID")}</span></div>
