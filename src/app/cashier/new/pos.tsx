@@ -48,32 +48,28 @@ export default function POS() {
     if (!done) return;
     const width = mm === 80 ? 48 : 32;
     const padL = (l: string, r: string) => l + " ".repeat(Math.max(1, width - l.length - r.length)) + r;
-    const enc = new TextEncoder();
-    const b: number[] = [0x1b, 0x40];
-    const push = (...x: number[]) => b.push(...x);
-    const text = (s: string) => b.push(...enc.encode(s));
-    push(0x1b, 0x61, 0x01, 0x1b, 0x45, 0x01); text("TheSystem\n"); push(0x1b, 0x45, 0x00);
-    if (branchName) text(branchName + "\n");
-    text("Powered by The System Pos\n");
-    push(0x1b, 0x61, 0x00);
-    text("-".repeat(width) + "\n");
-    text(padL("Tanggal", new Date().toLocaleString("id-ID")) + "\n");
-    text(padL("No", done.id) + "\n");
-    text("-".repeat(width) + "\n");
-    text(padL("Layanan", svc?.name ?? "-") + "\n");
-    text(padL("Barber", art?.name ?? "-") + "\n");
-    if (cust) text(padL("Pelanggan", cust) + "\n");
-    text("-".repeat(width) + "\n");
-    text(padL("Harga", rp(svc?.priceRp ?? 0)) + "\n");
-    if (disc > 0) text(padL("Diskon", "-" + rp(disc)) + "\n");
-    push(0x1b, 0x45, 0x01); text(padL("Total", rp(done.totalRp)) + "\n"); push(0x1b, 0x45, 0x00);
-    text(padL(pay === "qris" ? "QRIS" : "Tunai", rp(done.cashReceivedRp ?? cash)) + "\n");
-    text(padL("Kembalian", rp(done.changeRp)) + "\n");
-    text("-".repeat(width) + "\n");
-    push(0x1b, 0x61, 0x01); text("Terima kasih!\n"); push(0x1b, 0x61, 0x00);
-    push(0x0a, 0x0a, 0x0a, 0x1d, 0x56, 0x42, 0x00);
-    let bin = ""; for (let i = 0; i < b.length; i++) bin += String.fromCharCode(b[i]);
-    window.location.href = `intent:base64,${btoa(bin)}#Intent;scheme=rawbt;package=ru.a402d.rawbtprinter;end;`;
+    const lines = [
+      "TheSystem",
+      ...(branchName ? [branchName] : []),
+      "Powered by The System Pos",
+      "-".repeat(width),
+      padL("Tanggal", new Date().toLocaleString("id-ID")),
+      padL("No", done.id),
+      "-".repeat(width),
+      padL("Layanan", svc?.name ?? "-"),
+      padL("Barber", art?.name ?? "-"),
+      ...(cust ? [padL("Pelanggan", cust)] : []),
+      "-".repeat(width),
+      padL("Harga", rp(svc?.priceRp ?? 0)),
+      ...(disc > 0 ? [padL("Diskon", "-" + rp(disc))] : []),
+      padL("Total", rp(done.totalRp)),
+      padL(pay === "qris" ? "QRIS" : "Tunai", rp(done.cashReceivedRp ?? cash)),
+      padL("Kembalian", rp(done.changeRp)),
+      "-".repeat(width),
+      "Terima kasih!",
+      "", "", "",
+    ];
+    window.location.href = "rawbt:" + encodeURIComponent(lines.join("\n"));
   }
   async function sharePdf() {
     if (!done) return;
