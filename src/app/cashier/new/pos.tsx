@@ -17,13 +17,15 @@ export default function POS() {
   const [qrisStatic, setQrisStatic] = useState(process.env.NEXT_PUBLIC_QRIS_STATIC ?? "");
   const [busy, setBusy] = useState(false), [err, setErr] = useState(""), [done, setDone] = useState<{ id: string; totalRp: number; changeRp: number; cashReceivedRp?: number } | null>(null);
   const [branchName, setBranchName] = useState("");
+  const [branchAddress, setBranchAddress] = useState("");
+  const [branchBranding, setBranchBranding] = useState("Powered by The System Pos");
   const [branchLogoUrl, setBranchLogoUrl] = useState("");
   const [receiptWidthMm, setReceiptWidthMm] = useState(58);
   const [printMode, setPrintMode] = useState<"system" | "pdf" | "ble">("system");
   const [printLog, setPrintLog] = useState<PrinterLogEntry[]>([]);
   const isIOS = typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1));
   const key = useRef<string>();
-  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setReceiptWidthMm(d.receiptWidthMm ?? 58); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
+  const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setBranchAddress(d.branchAddress ?? ""); setBranchBranding(d.branchBranding ?? "Powered by The System Pos"); setReceiptWidthMm(d.receiptWidthMm ?? 58); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
   useEffect(load, []);
   useEffect(() => {
     const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
@@ -58,6 +60,8 @@ export default function POS() {
       const bytes = buildReceipt({
         widthMm: mm,
         shop: branchName || "TheSystem",
+        address: branchAddress || undefined,
+        branding: branchBranding,
         date: new Date(),
         service: svc?.name,
         barber: art?.name,
@@ -85,7 +89,8 @@ export default function POS() {
       const rows: { l?: string; r?: string; c?: string; b?: boolean; dash?: boolean; size?: number }[] = [];
       rows.push({ c: "TheSystem", b: true, size: 1 });
       if (branchName) rows.push({ c: branchName });
-      rows.push({ c: "Powered by The System Pos", size: -1 });
+      if (branchAddress) rows.push({ c: branchAddress, size: -1 });
+      rows.push({ c: branchBranding, size: -1 });
       rows.push({ dash: true });
       rows.push({ l: "Tanggal", r: new Date().toLocaleString("id-ID") });
       rows.push({ l: "No", r: done.id });
@@ -148,6 +153,8 @@ export default function POS() {
     <div className="receipt" style={{ width: `${mm}mm`, padding: `${rpad}mm`, fontSize: rfs }}>
       {branchLogoUrl ? <div className="r-center"><img src={branchLogoUrl} alt="" style={{ maxWidth: "100%", maxHeight: mm === 80 ? 24 : 18, objectFit: "contain", margin: "0 auto 4px" }} /></div> : <div className="r-center r-bold">TheSystem</div>}
       {branchName && <div className="r-center">{branchName}</div>}
+      {branchAddress && <div className="r-center">{branchAddress}</div>}
+      <div className="r-center">{branchBranding}</div>
       <div className="r-line" />
       <div className="r-row"><span>Tanggal</span><span>{new Date().toLocaleString("id-ID")}</span></div>
       <div className="r-row"><span>No</span><span>{done.id}</span></div>

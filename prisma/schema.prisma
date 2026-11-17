@@ -53,6 +53,8 @@ model Branch {
   id            String   @id @default(cuid())
   name          String
   logoUrl       String?  // data URL, small square image
+  address       String?  // alamat cabang, tampil di header struk
+  receiptBranding String @default("Powered by The System Pos")
   qrisStatic    String?  // static merchant QRIS payload for dynamic QR generation
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight

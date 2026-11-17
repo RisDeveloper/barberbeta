@@ -4,6 +4,8 @@ const rp = (n: number) => Number(n || 0).toLocaleString("id-ID");
 export type ReceiptData = {
   widthMm: number;
   shop?: string;
+  address?: string;
+  branding?: string;
   date?: Date;
   service?: string;
   barber?: string;
@@ -48,7 +50,7 @@ export function buildReceipt(data: ReceiptData): Uint8Array {
   const INIT = "\x1B\x40", BOLD_ON = "\x1B\x45\x01", BOLD_OFF = "\x1B\x45\x00";
   const tgl = new Date(data.date ?? Date.now()).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Jakarta" });
 
-  let s = INIT + BOLD_ON + ctr(data.shop || "TheSystem") + BOLD_OFF + ctr("Powered by The System Pos") + line();
+  let s = INIT + BOLD_ON + ctr(data.shop || "TheSystem") + BOLD_OFF + (data.address ? ctr(data.address) : "") + ctr(data.branding || "Powered by The System Pos") + line();
   s += asc(tgl) + "\n" + line();
   if (data.service) s += wrap("Layanan: " + data.service);
   if (data.barber) s += wrap("Barber: " + (data.barber || "-"));
