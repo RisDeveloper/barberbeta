@@ -62,11 +62,25 @@ export async function connectPrinter() {
 
 export async function printBytes(bytes: Uint8Array) {
   if (!chr || !device?.gatt?.connected) await connectPrinter();
-  const chunk = 20;
-  for (let i = 0; i < bytes.length; i += chunk) {
-    const part = bytes.slice(i, i + chunk);
-    if (chr.properties?.writeWithoutResponse) await chr.writeValueWithoutResponse(part);
-    else await chr.writeValue(part);
+  let onlyNoResponse = false;
+  let i = 0;
+  while (i < bytes.length) {
+    const size = onlyNoResponse ? 20 : 200;
+    const part = bytes.slice(i, i + size);
+    if (onlyNoResponse) {
+      await chr.writeValueWithoutResponse(part);
+    } else {
+      try {
+        await chr.writeValue(part);
+      } catch (e: any) {
+        if (e?.name === "NotSupportedError") {
+          onlyNoResponse = true;
+          continue;
+        }
+        throw e;
+      }
+    }
+    i += part.length;
     await new Promise((r) => setTimeout(r, 15));
   }
 }
