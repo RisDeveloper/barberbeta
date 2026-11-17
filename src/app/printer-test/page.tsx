@@ -2,15 +2,19 @@
 import { useEffect, useState } from "react";
 import { buildReceipt } from "@/lib/escpos";
 import { bluetoothSupported, connectPrinter, printBytes, disconnectPrinter, isPrinterConnected } from "@/lib/bluetooth-printer";
+import { clearPrinterLog, printerLog, subscribePrinterLog } from "@/lib/printer-log";
 
 export default function PrinterTest() {
   const [log, setLog] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => { setReady(true); }, []);
+  useEffect(() => {
+    setReady(true);
+    return subscribePrinterLog((all) => setLog(all.map((e) => `${e.at} [${e.level === "err" ? "ERR" : "INFO"}] ${e.msg}`)));
+  }, []);
 
   function push(s: string) {
-    setLog((l) => [...l, `${new Date().toLocaleTimeString("id-ID")} — ${s}`]);
+    printerLog(s);
   }
   async function connect() {
     try {
@@ -79,6 +83,7 @@ export default function PrinterTest() {
           <button className="btn t" onClick={test}>2. Print TEST</button>
           <button className="btn t" onClick={struk}>3. Print STRUK</button>
           <button className="btn" onClick={putus}>Putuskan</button>
+          <button className="btn" onClick={() => { clearPrinterLog(); setLog([]); }}>Hapus log</button>
         </div>
         <pre style={{ background: "var(--card)", padding: 12, borderRadius: 8, fontSize: 12, whiteSpace: "pre-wrap", minHeight: 180 }}>
 {log.join("\n") || "Log muncul di sini."}

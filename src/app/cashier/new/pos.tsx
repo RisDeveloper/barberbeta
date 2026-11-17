@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { buildQris } from "@/lib/qris";
 import { buildReceipt } from "@/lib/escpos";
 import { bluetoothSupported, connectPrinter, printBytes } from "@/lib/bluetooth-printer";
+import { clearPrinterLog, subscribePrinterLog, type PrinterLogEntry } from "@/lib/printer-log";
 const rp = (n: number) => "Rp" + n.toLocaleString("id-ID");
 type S = { id: string; name: string; priceRp: number; commissionRp?: number; loyaltyPoints?: number }; type A = { id: string; name: string; available: boolean };
 export default function POS() {
@@ -19,6 +20,7 @@ export default function POS() {
   const [branchLogoUrl, setBranchLogoUrl] = useState("");
   const [receiptWidthMm, setReceiptWidthMm] = useState(58);
   const [printMode, setPrintMode] = useState<"system" | "pdf" | "ble">("system");
+  const [printLog, setPrintLog] = useState<PrinterLogEntry[]>([]);
   const isIOS = typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1));
   const key = useRef<string>();
   const load = () => { fetch("/api/services").then((r) => r.json()).then((d) => { setS(d.services ?? []); setBranchName(d.branchName ?? ""); setBranchLogoUrl(d.branchLogoUrl ?? ""); setReceiptWidthMm(d.receiptWidthMm ?? 58); setQrisStatic(d.qrisStatic ?? process.env.NEXT_PUBLIC_QRIS_STATIC ?? ""); }).catch(() => {}); fetch("/api/artists").then((r) => r.json()).then((d) => setA(d.artists ?? [])).catch(() => {}); };
@@ -28,6 +30,7 @@ export default function POS() {
     const saved = (() => { try { return localStorage.getItem("receiptPrintMode"); } catch { return null; } })();
     setPrintMode(saved === "system" || saved === "pdf" || saved === "ble" ? saved : ios ? "pdf" : bluetoothSupported() ? "ble" : "system");
   }, []);
+  useEffect(() => subscribePrinterLog(setPrintLog), []);
   const chooseMode = (m: typeof printMode) => { setPrintMode(m); try { localStorage.setItem("receiptPrintMode", m); } catch {} };
   const svc = services.find((s) => s.id === sid), art = artists.find((a) => a.id === aid);
   const total = Math.max(0, (svc?.priceRp ?? 0) - disc), change = cash - total;
@@ -48,6 +51,7 @@ export default function POS() {
   async function printBluetooth() {
     if (!done) return;
     try {
+      clearPrinterLog();
       (window as any).__showToast?.("ok", "Menghubungkan printer…");
       const name = await connectPrinter();
       (window as any).__showToast?.("ok", `Terhubung: ${name}`);
@@ -139,6 +143,7 @@ export default function POS() {
           <option value="ble">Bluetooth langsung (BLE)</option>
         </select></div>
       {printMode === "ble" && <div className="portal" style={{ margin: "8px 0 0" }}>{bluetoothSupported() ? "Pilih printer BLE saat diminta. Printer Bluetooth 2.0 klasik tidak muncul di Web Bluetooth." : "Browser ini tidak mendukung Web Bluetooth. Wajib Chrome di Android + alamat https. Safari/iPad tidak bisa."}</div>}
+      {printMode === "ble" && <details style={{ marginTop: 8, fontSize: 12 }}><summary style={{ cursor: "pointer" }}>Log printer — lihat penyebab kalau gagal</summary><pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", background: "var(--card)", padding: 8, borderRadius: 8, maxHeight: 180, overflow: "auto" }}>{printLog.length ? printLog.map((e) => `${e.at} [${e.level === "err" ? "ERR" : "INFO"}] ${e.msg}`).join("\n") : "Belum ada log. Tekan Cetak struk."}</pre></details>}
       {isIOS && printMode !== "pdf" && <div className="portal" style={{ margin: "8px 0 0" }}>Di iPad/iPhone sebaiknya pakai PDF/AirPrint; Web Bluetooth tidak tersedia di Safari.</div>}</div>
     <div className="receipt" style={{ width: `${mm}mm`, padding: `${rpad}mm`, fontSize: rfs }}>
       {branchLogoUrl ? <div className="r-center"><img src={branchLogoUrl} alt="" style={{ maxWidth: "100%", maxHeight: mm === 80 ? 24 : 18, objectFit: "contain", margin: "0 auto 4px" }} /></div> : <div className="r-center r-bold">TheSystem</div>}
