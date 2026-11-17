@@ -59,7 +59,7 @@ export function buildReceipt(data: ReceiptData): Uint8Array {
   s += BOLD_ON + two("TOTAL", "Rp" + rp(data.totalRp)) + BOLD_OFF;
   s += two(data.method || "Tunai", "Rp" + rp(data.paidRp));
   s += two("Kembali", "Rp" + rp(Math.max(data.changeRp, 0))) + line();
-  s += ctr(data.footer) + ctr("*** TERIMA KASIH ***") + "\n\n\n";
+  s += ctr(data.footer) + ctr("*** TERIMA KASIH ***") + "\n\n\n" + "\x1D\x56\x42\x00";
 
   const bytes = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i) & 0xff;

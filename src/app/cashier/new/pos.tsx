@@ -50,6 +50,7 @@ export default function POS() {
     try {
       (window as any).__showToast?.("ok", "Menghubungkan printer…");
       const name = await connectPrinter();
+      (window as any).__showToast?.("ok", `Terhubung: ${name}`);
       const bytes = buildReceipt({
         widthMm: mm,
         shop: branchName || "TheSystem",
@@ -65,8 +66,9 @@ export default function POS() {
         method: pay === "qris" ? "QRIS" : "Tunai",
         footer: "",
       });
+      (window as any).__showToast?.("ok", `Mengirim ${bytes.length} byte ke ${name}…`);
       await printBytes(bytes);
-      (window as any).__showToast?.("ok", `Struk terkirim ke ${name}`);
+      (window as any).__showToast?.("ok", `Struk selesai dikirim ke ${name}`);
     } catch (e: any) {
       (window as any).__showToast?.("err", e?.message ?? "Gagal mencetak via Bluetooth");
     }
