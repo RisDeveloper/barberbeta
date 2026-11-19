@@ -2,7 +2,7 @@ import { cookies } from "next/headers"; import { createHash, randomBytes } from 
 import { prisma } from "./db"; import type { Role } from "@prisma/client";
 export const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
 export class HttpError extends Error { constructor(public status: number, msg?: string) { super(msg ?? String(status)); } }
-const COOKIE = "bos_session", TTL = 12 * 3600;
+const COOKIE = "bos_session", TTL = 30 * 24 * 3600;
 
 export async function createSession(userId: string) {
   const token = randomBytes(32).toString("base64url");
