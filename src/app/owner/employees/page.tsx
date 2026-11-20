@@ -42,8 +42,8 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
       const entry = sched[String(i)];
       const cur = (entry && typeof entry === "object") ? (entry.shift ?? entry.shiftId ?? "") : (typeof entry === "string" ? entry : "");
       const selShift = shifts.find((sh: any) => sh.id === cur);
-      const inVal = (entry && typeof entry === "object" && entry.in) ? entry.in : (entry && typeof entry === "object" && entry.startMin != null ? `${String(Math.floor(entry.startMin/60)).padStart(2,"0")}:${String(entry.startMin%60).padStart(2,"0")}` : "");
-      const outVal = (entry && typeof entry === "object" && entry.out) ? entry.out : (entry && typeof entry === "object" && entry.endMin != null ? `${String(Math.floor(entry.endMin/60)).padStart(2,"0")}:${String(entry.endMin%60).padStart(2,"0")}` : "");
+      const inVal = (entry && typeof entry === "object" && typeof entry.in === "number") ? hm(entry.in) : (entry && typeof entry === "object" && typeof entry.in === "string" ? entry.in : (entry && typeof entry === "object" && entry.startMin != null ? hm(entry.startMin) : ""));
+      const outVal = (entry && typeof entry === "object" && typeof entry.out === "number") ? hm(entry.out) : (entry && typeof entry === "object" && typeof entry.out === "string" ? entry.out : (entry && typeof entry === "object" && entry.endMin != null ? hm(entry.endMin) : ""));
       const summary = cur === "" ? "Libur" : (selShift ? `${selShift.name} (${inVal || String(Math.floor(selShift.startMin/60)).padStart(2,"0")+":"+String(selShift.startMin%60).padStart(2,"0")} - ${outVal || String(Math.floor(selShift.endMin/60)).padStart(2,"0")+":"+String(selShift.endMin%60).padStart(2,"0")})` : "Shift");
       return (
         <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>

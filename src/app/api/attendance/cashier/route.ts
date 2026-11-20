@@ -5,6 +5,8 @@ import { requireUser, handle, HttpError } from "@/lib/session";
 import bcrypt from "bcryptjs";
 const Body = z.object({ email: z.string().trim().email().toLowerCase(), pin: z.string().regex(/^\d{4,8}$/).optional() });
 
+const hm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
+
 function local(d: Date, tz: string) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", weekday: "short" }).formatToParts(d);
   const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
@@ -22,8 +24,8 @@ export const POST = (req: Request) => handle(async () => {
   const workDays = (emp.workDays ?? "0,1,2,3,4,5,6").split(",").map((x) => parseInt(x.trim(), 10)).filter((n) => !isNaN(n));
   if (!workDays.includes(dow)) throw new HttpError(400, "Bukan hari kerja karyawan ini");
   const rec = await prisma.attendanceRecord.findUnique({ where: { userId_workDate: { userId: emp.id, workDate: date } } });
-  const reply = (r: { checkInAt: Date; checkOutAt: Date | null; status: string; mealAllowanceRp?: number }, state: string, notice: string) =>
-    Response.json({ name: emp.name, branch: branch.name, state, notice, status: r.status, checkInAt: r.checkInAt, checkOutAt: r.checkOutAt, mealAllowanceRp: r.mealAllowanceRp ?? 0 });
+  const reply = (r: { checkInAt: Date; checkOutAt: Date | null; status: string; mealAllowanceRp?: number }, state: string, notice: string, debug?: Record<string, unknown>) =>
+    Response.json({ name: emp.name, branch: branch.name, state, notice, status: r.status, checkInAt: r.checkInAt, checkOutAt: r.checkOutAt, mealAllowanceRp: r.mealAllowanceRp ?? 0, ...(debug ?? {}) });
   if (!rec) {
     if (!pin) throw new HttpError(400, "PIN wajib untuk absen masuk");
     const ok = await bcrypt.compare(pin, emp.pinHash);
@@ -45,7 +47,8 @@ export const POST = (req: Request) => handle(async () => {
     const meal = matched ? matched.mealAllowanceRp : (emp.mealAllowanceRp ?? 0);
     const late = minutes > shiftStart + grace;
     const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : meal } });
-    return reply(r, "Sudah Absen Datang", "Absen masuk tercatat");
+    const source = overrideStart != null ? "jadwal karyawan" : matched ? `shift ${matched.name}` : "cabang";
+    return reply(r, "Sudah Absen Datang", "Absen masuk tercatat", { scheduleStart: hm(shiftStart), nowTime: hm(minutes), graceMin: grace, shiftSource: source, shiftDate: date, shiftDow: dow });
   }
   if (rec.checkOutAt) return reply(rec, "Sudah Absen Pulang", "Sudah absen keluar hari ini");
   const r = await prisma.attendanceRecord.update({ where: { id: rec.id }, data: { checkOutAt: now } });
