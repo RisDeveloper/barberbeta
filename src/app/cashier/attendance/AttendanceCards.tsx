@@ -37,6 +37,16 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
       window.location.href = "/cashier/attendance?_=" + Date.now();
     } catch { setBusy(false); setSel(emp); setErr("Gagal"); }
   }
+  async function redo(emp: E) {
+    if (busy) return; setBusy(true); setErr("");
+    try {
+      const r = await fetch("/api/attendance/cashier/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: emp.email }) });
+      const d = await r.json(); setBusy(false);
+      if (!r.ok) return setErr(d.error ?? "Gagal");
+      setOverrides((prev) => ({ ...prev, [emp.id]: { state: "", inAt: null, outAt: null } }));
+      setSel(null); setPin(""); setErr(""); setRes(null);
+    } catch { setBusy(false); setErr("Gagal"); }
+  }
   const done = (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Selesai";
   const out = !!(overrides[sel?.id ?? ""]?.state ?? sel?.state) && !done;
   const isCheckedIn = (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Hadir" || (overrides[sel?.id ?? ""]?.state ?? sel?.state) === "Terlambat";
@@ -65,6 +75,7 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
             {res.nowTime && <div className="row"><span>Waktu absen</span><b>{res.nowTime} · toleransi {res.graceMin ?? 0} mnt ({res.graceSource ?? "-"})</b></div>}
           </div>
           <button className="btn" style={{ marginTop: 12 }} onClick={close}>Selesai</button>
+          {sel && <button className="btn t" style={{ marginTop: 8 }} onClick={() => redo(sel)} disabled={busy}>Ulangi absen</button>}
         </>) : isCheckedIn ? (<>
           <div className="attPHead"><span className="attPAvatar">{initial(sel.name)}</span><div><b>{clean(sel.name)}</b>
             <div className="attPSub">Klik tombol untuk absen pulang</div></div></div>
@@ -76,10 +87,12 @@ export default function AttendanceCards({ employees, tz = "Asia/Jakarta" }: { em
           </div>
           {err && <div className="err" role="alert">{err}</div>}
           <button type="button" className="btn t" onClick={close}>Batal</button>
+          <button type="button" className="btn t" style={{ marginTop: 8 }} onClick={() => redo(sel)} disabled={busy}>Ulangi absen</button>
         </>) : done ? (<>
           <div className="row"><span>Masuk</span><b>{hm(sel.inAt)}</b></div>
           <div className="row"><span>Keluar</span><b>{hm(sel.outAt)}</b></div>
           <button className="btn" style={{ marginTop: 12 }} onClick={close}>Tutup</button>
+          <button className="btn t" style={{ marginTop: 8 }} onClick={() => redo(sel)} disabled={busy}>Ulangi absen</button>
         </>) : (<form onSubmit={submit}>
           <label htmlFor="pin">PIN (4-8 digit)</label>
           <input id="pin" className="field" type="password" inputMode="numeric" autoComplete="off" autoFocus value={pin}
