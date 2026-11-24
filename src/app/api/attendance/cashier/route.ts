@@ -43,12 +43,14 @@ export const POST = (req: Request) => handle(async () => {
     if (schedule && !todayShiftId) throw new HttpError(400, "Bukan hari kerja karyawan ini");
     const overrideStart = (todayEntry && typeof todayEntry === "object" && todayEntry.in != null) ? todayEntry.in : null;
     const shiftStart = overrideStart ?? (matched ? matched.startMin : (emp.shiftStartMin ?? branch.shiftStartMin));
-    const grace = matched ? matched.graceMin : (emp.lateGraceMin ?? branch.lateGraceMin);
+    const dayGrace = (todayEntry && typeof todayEntry === "object" && todayEntry.grace != null) ? Number(todayEntry.grace) : null;
+    const grace = dayGrace != null && !isNaN(dayGrace) ? dayGrace : (emp.lateGraceMin ?? (matched ? matched.graceMin : branch.lateGraceMin));
+    const graceSource = dayGrace != null && !isNaN(dayGrace) ? "jadwal karyawan" : emp.lateGraceMin != null ? "karyawan" : matched ? `shift ${matched.name}` : "cabang";
     const meal = matched ? matched.mealAllowanceRp : (emp.mealAllowanceRp ?? 0);
     const late = minutes > shiftStart + grace;
     const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : meal } });
     const source = overrideStart != null ? "jadwal karyawan" : matched ? `shift ${matched.name}` : "cabang";
-    return reply(r, "Sudah Absen Datang", "Absen masuk tercatat", { scheduleStart: hm(shiftStart), nowTime: hm(minutes), graceMin: grace, shiftSource: source, shiftDate: date, shiftDow: dow });
+    return reply(r, "Sudah Absen Datang", "Absen masuk tercatat", { scheduleStart: hm(shiftStart), nowTime: hm(minutes), graceMin: grace, graceSource, shiftSource: source, shiftDate: date, shiftDow: dow });
   }
   if (rec.checkOutAt) return reply(rec, "Sudah Absen Pulang", "Sudah absen keluar hari ini");
   const r = await prisma.attendanceRecord.update({ where: { id: rec.id }, data: { checkOutAt: now } });

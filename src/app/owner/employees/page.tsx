@@ -15,7 +15,7 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
   const insOf = (id: string) => payAgg.filter((p) => p.userId === id && p.category === "Insentif").reduce((a, p) => a + (p._sum.amountRp ?? 0), 0);
   const bonOf = (id: string) => payAgg.filter((p) => p.userId === id && p.category === "Bonus").reduce((a, p) => a + (p._sum.amountRp ?? 0), 0);
   const netOf = (id: string) => commOf(id) + insOf(id) + bonOf(id) - kasbonOf(id);
-  return (<><h1>Manajemen Karyawan</h1><div className="card" style={{ marginBottom: 16 }}><h2>Tambah karyawan</h2><form action={createUser} className="fr"><F l="Nama" n="name" r /><F l="Email" n="email" t="email" r /><F l="PIN (4-8 digit)" n="pin" t="password" r /><F l="Peran" n="role" o={RL} r /><F l="Cabang" n="branchId" o={B} r />
+  return (<><h1>Manajemen Karyawan</h1><div className="card" style={{ marginBottom: 16 }}><h2>Tambah karyawan</h2><form action={createUser} className="fr"><F l="Nama" n="name" r /><F l="Email" n="email" t="email" r /><F l="PIN (4-8 digit)" n="pin" t="password" r /><F l="Peran" n="role" o={RL} r /><F l="Cabang" n="branchId" o={B} r /><F l="Toleransi terlambat (menit)" n="lateGraceMin" t="number" d="" />
     <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (klik hari untuk atur)</div>
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => (
       <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
@@ -27,16 +27,18 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
           ))}
           <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 8 }}>Jam masuk</span>
           <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
-          <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
-          <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
-        </div>
+           <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+           <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} />
+           <span style={{ fontSize: 12, color: "var(--muted)" }}>Toleransi (mnt)</span>
+           <input name={`day_${i}_grace`} type="number" min={0} max={240} placeholder="Ikut karyawan" className="field" style={{ margin: 0, width: 110, flex: "0 0 110px" }} />
+         </div>
       </details>
     ))}
   </div>
   <button className="btn s">Tambah</button></form></div>
     <form className="fr" style={{ marginBottom: 16 }}><F l="Cari nama" n="q" d={sp.q} /><F l="Peran" n="role" d={sp.role} o={[["", "Semua"], ...RL]} /><BranchSel sp={sp} /><button className="btn s">Saring</button></form>
     <Tbl head={["Nama", "Email", "PIN", "Peran", "Cabang", "Kasbon", "Bersih", "Status", "Kelola"]} rows={us.map((u) => [u.name, u.email, decPin(u.pinEnc) || "—", RL.find(([r]) => r === u.role)?.[1], u.branch?.name ?? "—", rp(kasbonOf(u.id)), rp(netOf(u.id)), <span className={"pill " + (u.active ? "ok" : "mute")}>{u.active ? "Aktif" : "Nonaktif"}</span>,
-      <><details><summary>Ubah</summary><form action={updateUser} className="fr"><input type="hidden" name="id" value={u.id} /><F l="Nama" n="name" d={u.name} r /><F l="Peran" n="role" d={u.role} o={RL} /><F l="Cabang" n="branchId" d={u.branchId} o={B} />    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (pilih shift per hari, kosong = libur)</div>
+      <><details><summary>Ubah</summary><form action={updateUser} className="fr"><input type="hidden" name="id" value={u.id} /><F l="Nama" n="name" d={u.name} r /><F l="Peran" n="role" d={u.role} o={RL} /><F l="Cabang" n="branchId" d={u.branchId} o={B} /><F l="Toleransi terlambat (menit)" n="lateGraceMin" t="number" d={u.lateGraceMin == null ? "" : String(u.lateGraceMin)} />    <div style={{ flex: "1 1 100%" }}><div style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>Jadwal shift per hari (pilih shift per hari, kosong = libur)</div>
     {["Min","Sen","Sel","Rab","Kam","Jum","Sab"].map((d, i) => {
       const sched = (u.shiftSchedule && typeof u.shiftSchedule === "object") ? u.shiftSchedule as Record<string, any> : {};
       const entry = sched[String(i)];
@@ -44,7 +46,8 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
       const selShift = shifts.find((sh: any) => sh.id === cur);
       const inVal = (entry && typeof entry === "object" && typeof entry.in === "number") ? hm(entry.in) : (entry && typeof entry === "object" && typeof entry.in === "string" ? entry.in : (entry && typeof entry === "object" && entry.startMin != null ? hm(entry.startMin) : ""));
       const outVal = (entry && typeof entry === "object" && typeof entry.out === "number") ? hm(entry.out) : (entry && typeof entry === "object" && typeof entry.out === "string" ? entry.out : (entry && typeof entry === "object" && entry.endMin != null ? hm(entry.endMin) : ""));
-      const summary = cur === "" ? "Libur" : (selShift ? `${selShift.name} (${inVal || String(Math.floor(selShift.startMin/60)).padStart(2,"0")+":"+String(selShift.startMin%60).padStart(2,"0")} - ${outVal || String(Math.floor(selShift.endMin/60)).padStart(2,"0")+":"+String(selShift.endMin%60).padStart(2,"0")})` : "Shift");
+      const graceVal = (entry && typeof entry === "object" && entry.grace != null) ? String(entry.grace) : "";
+      const summary = cur === "" ? "Libur" : (selShift ? `${selShift.name} (${inVal || String(Math.floor(selShift.startMin/60)).padStart(2,"0")+":"+String(selShift.startMin%60).padStart(2,"0")} - ${outVal || String(Math.floor(selShift.endMin/60)).padStart(2,"0")+":"+String(selShift.endMin%60).padStart(2,"0")}${graceVal ? ` · tol ${graceVal}m` : ""})` : "Shift");
       return (
         <details key={i} style={{ flex: "1 1 100%", marginBottom: 6, border: "1px solid #DADCE0", borderRadius: 8, padding: "4px 8px" }}>
           <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 600, listStyle: "none" }}>{d} — {summary}</summary>
@@ -55,9 +58,11 @@ export default async function Employees({ searchParams: sp }: { searchParams: SP
             ))}
             <span style={{ fontSize: 12, color: "var(--muted)", marginLeft: 8 }}>Jam masuk</span>
             <input name={`day_${i}_in`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={inVal} />
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
-            <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={outVal} />
-          </div>
+             <span style={{ fontSize: 12, color: "var(--muted)" }}>Jam keluar</span>
+             <input name={`day_${i}_out`} type="time" className="field" style={{ margin: 0, width: 100, flex: "0 0 100px" }} defaultValue={outVal} />
+             <span style={{ fontSize: 12, color: "var(--muted)" }}>Toleransi (mnt)</span>
+             <input name={`day_${i}_grace`} type="number" min={0} max={240} placeholder="Ikut karyawan" className="field" style={{ margin: 0, width: 110, flex: "0 0 110px" }} defaultValue={graceVal} />
+           </div>
         </details>
       );
     })}
