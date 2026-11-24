@@ -1,6 +1,6 @@
 "use server";
 import { z } from "zod"; import bcrypt from "bcryptjs"; import { revalidatePath } from "next/cache"; import { cookies } from "next/headers";
-import { prisma } from "@/lib/db"; import { Prisma } from "@prisma/client"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner"; import { encPin } from "@/lib/pincrypt";
+import { prisma } from "@/lib/db"; import { Prisma } from "@prisma/client"; import { requireUser, HttpError } from "@/lib/session"; import { dayStart } from "@/lib/time"; import { TZ } from "@/lib/owner"; import { encPin } from "@/lib/pincrypt"; import { repairLateRecords } from "@/lib/attendance-repair";
 const toast = (type: "ok" | "err", msg: string) => { try { cookies().set("toast", `${type}:${msg}`, { path: "/", maxAge: 10 }); } catch {} };
 const me = () => requireUser(["OWNER"]);
 const os = z.string().transform((v) => v.trim() || undefined).optional();
@@ -130,6 +130,18 @@ export async function deleteUser(fd: FormData) {
     prisma.session.deleteMany({ where: { userId: id } }),
   ]);
   await audit(o.id, "USER_DELETE", "User", id, { name: u!.name, role: u!.role }); toast("ok", "Berhasil"); done();
+}
+export async function repairAttendance(fd: FormData) {
+  const o = await me();
+  const from = String(fd.get("from") ?? "").trim(), to = String(fd.get("to") ?? "").trim();
+  const branch = String(fd.get("branch") ?? "").trim(), email = String(fd.get("email") ?? "").trim().toLowerCase();
+  const where: any = { status: "LATE" };
+  if (from || to) where.workDate = { ...(from ? { gte: from } : {}), ...(to ? { lte: to } : {}) };
+  if (branch) where.branchId = branch;
+  if (email) where.user = { email };
+  const { total, fixed, kept } = await repairLateRecords(where);
+  await audit(o.id, "ATTENDANCE_REPAIR", "AttendanceRecord", "", { total, fixed, kept, from, to, branch, email });
+  toast("ok", `Diperbaiki ${fixed} dari ${total} absen terlambat`); done();
 }
 export async function saveReward(fd: FormData) {
   const o = await me(), d = get(z.object({ id: os, name: z.string().min(2), costPoints: pos, discountRp: z.coerce.number().int().min(0).default(0) }), fd);
