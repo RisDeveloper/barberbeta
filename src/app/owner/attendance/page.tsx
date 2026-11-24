@@ -12,7 +12,7 @@ export default async function Attendance({ searchParams: sp }: { searchParams: S
       <F l="Email karyawan (opsional)" n="email" ph="08xx…@member.local" />
       <button className="btn s">Perbaiki status LATE</button>
     </form>
-    <div className="portal" style={{ margin: "0 0 12px" }}>Kosongkan tanggal untuk memeriksa semua record LATE. Status dihitung ulang dari jam masuk yang tersimpan menggunakan jadwal + toleransi karyawan saat ini; yang memang masih terlambat tidak diubah.</div>
+    <div className="portal" style={{ margin: "0 0 12px" }}>Kosongkan tanggal untuk memeriksa semua record LATE. Status dihitung ulang dari jam masuk yang tersimpan menggunakan jadwal + toleransi karyawan (default 30 menit kalau kosong); yang memang masih terlambat tidak diubah.</div>
     <RangeFilter sp={sp} def="today"><BranchSel sp={sp} /><F l="Karyawan" n="q" d={sp.q} /><F l="Peran" n="role" d={sp.role} o={[["", "Semua"], ["EMPLOYEE", "Barber"], ["CASHIER", "Kasir"], ["ADMIN", "Admin"]]} />
     <F l="Status" n="status" d={sp.status} o={[["", "Semua"], ...["PRESENT", "LATE", "ON_LEAVE", "ABSENT", "INCOMPLETE"].map((s) => [s, st(s)] as [string, string])]} /></RangeFilter>
     <Tbl head={["Cabang", "Karyawan", "Tanggal", "Masuk", "Keluar", "Status", "Jam"]} rows={rows.map((r) => { const inc = !r.checkOutAt && r.workDate < today;

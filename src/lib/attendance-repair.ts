@@ -22,7 +22,7 @@ export async function repairLateRecords(where: any) {
     const overrideStart = entry && typeof entry === "object" && entry.in != null ? asMin(entry.in) : null;
     const shiftStart = overrideStart != null && !isNaN(overrideStart) ? overrideStart : (matched ? matched.startMin : (emp.shiftStartMin ?? r.branch.shiftStartMin));
     const dayGrace = entry && typeof entry === "object" && entry.grace != null ? Number(entry.grace) : null;
-    const grace = dayGrace != null && !isNaN(dayGrace) ? dayGrace : (emp.lateGraceMin ?? (matched ? matched.graceMin : r.branch.lateGraceMin));
+    const grace = dayGrace != null && !isNaN(dayGrace) ? dayGrace : (emp.lateGraceMin ?? 30);
     const meal = matched ? matched.mealAllowanceRp : (emp.mealAllowanceRp ?? 0);
     if (minutes <= shiftStart + grace) {
       await prisma.attendanceRecord.update({ where: { id: r.id }, data: { status: "PRESENT", mealAllowanceRp: meal } });

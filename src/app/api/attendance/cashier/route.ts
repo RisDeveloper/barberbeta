@@ -44,8 +44,8 @@ export const POST = (req: Request) => handle(async () => {
     const overrideStart = (todayEntry && typeof todayEntry === "object" && todayEntry.in != null) ? todayEntry.in : null;
     const shiftStart = overrideStart ?? (matched ? matched.startMin : (emp.shiftStartMin ?? branch.shiftStartMin));
     const dayGrace = (todayEntry && typeof todayEntry === "object" && todayEntry.grace != null) ? Number(todayEntry.grace) : null;
-    const grace = dayGrace != null && !isNaN(dayGrace) ? dayGrace : (emp.lateGraceMin ?? (matched ? matched.graceMin : branch.lateGraceMin));
-    const graceSource = dayGrace != null && !isNaN(dayGrace) ? "jadwal karyawan" : emp.lateGraceMin != null ? "karyawan" : matched ? `shift ${matched.name}` : "cabang";
+    const grace = dayGrace != null && !isNaN(dayGrace) ? dayGrace : (emp.lateGraceMin ?? 30);
+    const graceSource = dayGrace != null && !isNaN(dayGrace) ? "jadwal karyawan" : emp.lateGraceMin != null ? "karyawan" : "default 30 menit";
     const meal = matched ? matched.mealAllowanceRp : (emp.mealAllowanceRp ?? 0);
     const late = minutes > shiftStart + grace;
     const r = await prisma.attendanceRecord.create({ data: { userId: emp.id, branchId: emp.branchId!, workDate: date, checkInAt: now, status: late ? "LATE" : "PRESENT", mealAllowanceRp: late ? 0 : meal } });

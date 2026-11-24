@@ -58,7 +58,7 @@ model Branch {
   qrisStatic    String?  // static merchant QRIS payload for dynamic QR generation
   timezone      String   @default("Asia/Jakarta")
   shiftStartMin Int      @default(540) // minutes after local midnight
-  lateGraceMin  Int      @default(10)
+  lateGraceMin  Int      @default(30)
   receiptWidthMm Int     @default(58) // thermal receipt paper width (58 or 80)
   active        Boolean  @default(true)
   deletedAt     DateTime?
@@ -80,7 +80,7 @@ model Shift {
   name            String     // "Pagi", "Siang", "Malam"
   startMin        Int        // minutes after midnight
   endMin          Int        // minutes after midnight
-  graceMin        Int        @default(10)
+  graceMin        Int        @default(30)
   mealAllowanceRp Int        @default(0)
   active          Boolean    @default(true)
   users           UserShift[]
